@@ -26,6 +26,15 @@ class BaseCRUD:
             return plain_result
 
     @classmethod
+    async def find_by_filter(cls, **filter):
+        async with async_session_maker() as session:
+            filters = dict(**{k: v for k, v in filter.items() if v is not None})
+            query = select(cls.model).filter_by(**filters)
+            result = await session.execute(query)
+            plain_result = result.scalars().all()
+            return plain_result
+
+    @classmethod
     async def add(cls, **values):
         async with async_session_maker() as session:
             async with session.begin():

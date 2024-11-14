@@ -28,6 +28,14 @@ class Patient(PatientBase):
         from_attributes = True
 
 
+class PatientFilter(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone_number: Optional[str] = None
+    birth_date: Optional[date] = None
+
+
 class DoctorBase(BaseModel):
     first_name: str
     last_name: str
