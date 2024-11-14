@@ -3,7 +3,7 @@ import schemas
 from crud import PatientCRUD
 
 router = APIRouter(
-    prefix="/patients",
+    prefix="/api/patients",
     tags=["patients"]
 )
 

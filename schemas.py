@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from datetime import date, datetime
+from datetime import date, datetime, time
 from enum import Enum
 from typing import Optional
 
@@ -51,11 +51,26 @@ class Doctor(DoctorBase):
         from_attributes = True
 
 
+class DoctorFilter(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone_number: Optional[str] = None
+    specialization: Optional[str] = None
+
+
 class ScheduleBase(BaseModel):
     doctor_id: int
     day_of_week: int
-    start_time: str
-    end_time: str
+    start_time: time
+    end_time: time
+
+
+class ScheduleFilter(BaseModel):
+    doctor_id: Optional[int] = None
+    day_of_week: Optional[int] = None
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
 
 
 class AppointmentBase(BaseModel):
@@ -64,3 +79,11 @@ class AppointmentBase(BaseModel):
     appointment_date: datetime
     status: AppointmentStatus = AppointmentStatus.SCHEDULED
     notes: Optional[str]
+
+
+class AppointmentFilter(BaseModel):
+    patient_id: Optional[int] = None
+    doctor_id: Optional[int] = None
+    appointment_date: Optional[datetime] = None
+    status: Optional[AppointmentStatus] = AppointmentStatus.SCHEDULED
+    notes: Optional[str] = None
