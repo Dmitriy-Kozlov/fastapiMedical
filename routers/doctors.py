@@ -1,17 +1,30 @@
-from fastapi import APIRouter, HTTPException
-import schemas
+from fastapi import APIRouter, HTTPException, status, Depends
+from auth import decode_token, oauth2_scheme
 from crud import DoctorCRUD
+import schemas
+
+
+def is_doctor(token: str = Depends(oauth2_scheme)):
+    current_user = decode_token(token)
+    if current_user.get("role") != "doctor":
+        raise HTTPException(
+            status_code=403,
+            detail="Access forbidden: Only doctors are allowed"
+        )
+    return current_user
+
 
 router = APIRouter(
     prefix="/api/doctors",
-    tags=["doctors"]
+    tags=["doctors"],
+    dependencies=[Depends(is_doctor)]
 )
 
-
-@router.post("/", response_model=schemas.Doctor)
-async def create_doctor(doctor: schemas.DoctorBase):
-    doctor_db = await DoctorCRUD.add(**doctor.dict())
-    return doctor_db
+#
+# @router.post("/", response_model=schemas.Doctor)
+# async def create_doctor(doctor: schemas.DoctorBase):
+#     doctor_db = await DoctorCRUD.add(**doctor.dict())
+#     return doctor_db
 
 
 @router.get("/all", response_model=list[schemas.Doctor])

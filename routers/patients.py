@@ -7,11 +7,11 @@ router = APIRouter(
     tags=["patients"]
 )
 
-
-@router.post("/", response_model=schemas.Patient)
-async def create_patient(patient: schemas.PatientCreate):
-    patient_db = await PatientCRUD.add(**patient.dict())
-    return patient_db
+#
+# @router.post("/", response_model=schemas.Patient)
+# async def create_patient(patient: schemas.PatientCreate):
+#     patient_db = await PatientCRUD.add(**patient.dict())
+#     return patient_db
 
 
 @router.get("/all", response_model=list[schemas.Patient])

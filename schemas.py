@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from datetime import date, datetime, time
 from enum import Enum
 from typing import Optional
@@ -61,7 +61,7 @@ class DoctorFilter(BaseModel):
 
 class ScheduleBase(BaseModel):
     doctor_id: int
-    day_of_week: int
+    day_of_week: int = Field(title="Day of week", ge=0, le=6)
     start_time: time
     end_time: time
 
@@ -87,3 +87,24 @@ class AppointmentFilter(BaseModel):
     appointment_date: Optional[datetime] = None
     status: Optional[AppointmentStatus] = AppointmentStatus.SCHEDULED
     notes: Optional[str] = None
+
+
+class UserBase(BaseModel):
+    email: EmailStr
+    role: str
+
+
+class UserCreate(UserBase):
+    password: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    specialization: Optional[str] = None
+
+
+class UserResponse(UserBase):
+    id: int
+    is_active: bool
+
+    class Config:
+        from_attributes = True

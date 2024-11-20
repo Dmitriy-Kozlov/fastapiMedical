@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, Enum, ForeignKey, Time, Text
+from sqlalchemy import Column, Integer, String, Date, DateTime, Enum, ForeignKey, Time, Text, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
+from passlib.hash import bcrypt
 import enum
 
 
@@ -19,6 +20,7 @@ class Patient(Base):
     phone_number = Column(String, nullable=False)
     birth_date = Column(Date, nullable=True)
     appointments = relationship("Appointment", back_populates="patient")
+    user = relationship("User", back_populates="patient", uselist=False)
 
 
 class Doctor(Base):
@@ -31,6 +33,7 @@ class Doctor(Base):
     phone_number = Column(String, nullable=False)
     schedules = relationship("Schedule", back_populates="doctor")
     appointments = relationship("Appointment", back_populates="doctor")
+    user = relationship("User", back_populates="doctor", uselist=False)
 
 
 class Schedule(Base):
@@ -53,3 +56,26 @@ class Appointment(Base):
     notes = Column(Text, nullable=True)
     patient = relationship("Patient", back_populates="appointments")
     doctor = relationship("Doctor", back_populates="appointments")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+    role = Column(String, nullable=False)  # "doctor" или "patient"
+    patient_id = Column(Integer, ForeignKey("patients.id"), nullable=True)
+    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=True)
+
+    patient = relationship("Patient", back_populates="user")
+    doctor = relationship("Doctor", back_populates="user")
+
+    @classmethod
+    def verify_password(cls, plain_password, hashed_password):
+        return bcrypt.verify(plain_password, hashed_password)
+
+    @classmethod
+    def hash_password(cls, password):
+        return bcrypt.hash(password)
