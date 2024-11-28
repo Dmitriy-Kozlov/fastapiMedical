@@ -39,12 +39,12 @@ async def register_user(user: schemas.UserCreate):
 
 
 @router.post("/login")
-async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_user(form_data: schemas.LoginRequest):
     user = await UserCRUD.find_one_or_none_by_email(email=form_data.username)
     if not user or not models.User.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     access_token = create_access_token(data={"sub": user.email, "role": user.role})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "patient_id": user.patient_id, "doctor_id": user.doctor_id}
 
 
 @router.get("/me", response_model=Union[schemas.Patient, schemas.Doctor])

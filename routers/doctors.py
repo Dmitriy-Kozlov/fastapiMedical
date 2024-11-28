@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from auth import decode_token, oauth2_scheme
+from auth import decode_token, oauth2_scheme, get_current_user
 from crud import DoctorCRUD
 import schemas
 
@@ -17,7 +17,7 @@ def is_doctor(token: str = Depends(oauth2_scheme)):
 router = APIRouter(
     prefix="/api/doctors",
     tags=["doctors"],
-    dependencies=[Depends(is_doctor)]
+    # dependencies=[Depends(is_doctor)]
 )
 
 #
@@ -30,6 +30,12 @@ router = APIRouter(
 @router.get("/all", response_model=list[schemas.Doctor])
 async def get_all_doctors():
     doctors = await DoctorCRUD.find_all()
+    return doctors
+
+
+@router.get("/all_with_schedule")
+async def get_all_doctors_with_schedule(user=Depends(get_current_user)):
+    doctors = await DoctorCRUD.get_all_doctors_with_schedules()
     return doctors
 
 

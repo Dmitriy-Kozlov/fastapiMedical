@@ -84,9 +84,15 @@ class AppointmentBase(BaseModel):
 class AppointmentFilter(BaseModel):
     patient_id: Optional[int] = None
     doctor_id: Optional[int] = None
+    input_date: Optional[date] = None
     appointment_date: Optional[datetime] = None
-    status: Optional[AppointmentStatus] = AppointmentStatus.SCHEDULED
+    status: Optional[AppointmentStatus] = None
     notes: Optional[str] = None
+
+
+class AppointmentWithDoctorPatient(AppointmentBase):
+    doctor: Doctor
+    patient: Patient
 
 
 class UserBase(BaseModel):
@@ -108,3 +114,8 @@ class UserResponse(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str

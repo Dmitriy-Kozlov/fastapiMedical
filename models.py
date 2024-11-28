@@ -51,7 +51,7 @@ class Appointment(Base):
     id = Column(Integer, primary_key=True, index=True)
     patient_id = Column(Integer, ForeignKey("patients.id"), nullable=False)
     doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
-    appointment_date = Column(DateTime, nullable=False)
+    appointment_date = Column(DateTime(timezone=True), nullable=False)
     status = Column(Enum(AppointmentStatus), default=AppointmentStatus.SCHEDULED)
     notes = Column(Text, nullable=True)
     patient = relationship("Patient", back_populates="appointments")

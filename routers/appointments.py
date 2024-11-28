@@ -1,6 +1,9 @@
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException
 import schemas
 from crud import AppointmentCRUD
+from datetime import datetime, date
 
 router = APIRouter(
     prefix="/api/appointments",
