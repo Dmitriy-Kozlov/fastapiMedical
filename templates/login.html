@@ -191,7 +191,6 @@ function handleSubmit(event) {
 
 
     if (!hasError)
-        console.log(username, password)
         fetch('/api/auth/login', {
             method: 'POST',
             headers: {
@@ -209,7 +208,13 @@ function handleSubmit(event) {
                 localStorage.setItem('patientId', data.patient_id);
                 localStorage.setItem('doctorId', data.doctor_id);
                 // Redirect or handle successful login
-                window.location.href = '/pages/lk';
+                if (data.doctor_id) {
+                   window.location.href = '/pages/doctorlk';
+                }
+                if (data.patient_id) {
+                   window.location.href = '/pages/lk';
+                }
+                // window.location.href = '/pages/lk';
             } else {
         console.error('Login failed:', data.message);
     }

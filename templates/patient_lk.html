@@ -353,7 +353,7 @@ async function switchTab(typeApp, patient, event) {
     })
         if (!response.ok) throw new Error('Failed to fetch appointments');
         const appointments = await response.json();
-
+        appointments.sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date));
         container.innerHTML = appointments
             .map(appointment => createAppointmentCard(appointment))
             .join('') || '<div class="info-value">Нет приёмов</div>';

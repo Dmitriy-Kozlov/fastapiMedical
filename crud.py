@@ -1,8 +1,9 @@
 # app/crud.py
+from fastapi import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 from database import async_session_maker
 import models
 import schemas
@@ -63,6 +64,28 @@ class BaseCRUD:
                     await session.rollback()
                     raise e
                 return new_instance
+
+    @classmethod
+    async def edit(cls, **values):
+        async with async_session_maker() as session:
+            async with session.begin():
+                id = values.get("id", None)
+                if not id:
+                    raise HTTPException(status_code=404, detail="Id not found")
+                query = select(cls.model).filter_by(id=id)
+                result = await session.execute(query)
+                plain_result = result.scalar_one_or_none()
+                if not plain_result:
+                    raise HTTPException(status_code=404, detail="Object not found")
+                for key, value in values.items():
+                    if value is not None and hasattr(plain_result, key):
+                        setattr(plain_result, key, value)
+                try:
+                    await session.commit()
+                except SQLAlchemyError as e:
+                    await session.rollback()
+                    raise e
+                return plain_result
 
 
 class PatientCRUD(BaseCRUD):
@@ -139,12 +162,36 @@ class AppointmentCRUD(BaseCRUD):
             appointments = result.scalars().all()
             return [
                 schemas.AppointmentWithDoctorPatient(
+                    id=appointment.id,
                     patient_id=appointment.patient_id,
                     doctor_id=appointment.doctor_id,
                     appointment_date=appointment.appointment_date,
                     status=appointment.status,
                     notes=appointment.notes,
                     doctor=appointment.doctor,
+                    patient=appointment.patient
+                )
+                for appointment in appointments
+            ]
+
+    @classmethod
+    async def find_appointments_with_patient_by_date(cls, doctor_id: int, input_date: date):
+        async with async_session_maker() as session:
+            query = select(cls.model).filter_by(doctor_id=doctor_id)
+            query = query.filter(func.date(cls.model.appointment_date) == input_date)
+            query = query.options(
+                joinedload(cls.model.patient)
+            )
+            result = await session.execute(query)
+            appointments = result.scalars().all()
+            return [
+                schemas.AppointmentWithPatient(
+                    id=appointment.id,
+                    patient_id=appointment.patient_id,
+                    doctor_id=appointment.doctor_id,
+                    appointment_date=appointment.appointment_date,
+                    status=appointment.status,
+                    notes=appointment.notes,
                     patient=appointment.patient
                 )
                 for appointment in appointments

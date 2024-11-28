@@ -1,0 +1,472 @@
+<html><head><base href="<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: #f0f2f5;
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #2c3e50;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e1e4e8;
+}
+
+.tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: 16px;
+  color: #666;
+}
+
+.tab.active {
+  color: #3498db;
+  border-bottom: 2px solid #3498db;
+  margin-bottom: -2px;
+}
+
+.date-selector {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.appointments-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.appointment-card {
+  background: white;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  padding: 15px;
+  transition: background-color 0.3s ease;
+}
+
+.appointment-card.completed {
+  background-color: #f8f9fa;
+  border-left: 4px solid #2ecc71;
+}
+
+.appointment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.appointment-time {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.patient-name {
+  font-size: 16px;
+  color: #2c3e50;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.patient-name:hover {
+  color: #3498db;
+}
+
+.notes-area {
+  width: 100%;
+  min-height: 80px;
+  margin: 10px 0;
+  padding: 8px;
+  border: 1px solid #e1e4e8;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.save-btn, .complete-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  border: none;
+}
+
+.save-btn {
+  background: #3498db;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #2980b9;
+}
+
+.complete-btn {
+  background: #2ecc71;
+  color: white;
+}
+
+.complete-btn:hover {
+  background: #27ae60;
+}
+
+.complete-btn.completed {
+  background: #95a5a6;
+}
+
+.search-container {
+  margin-bottom: 20px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #e1e4e8;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.patient-history {
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-scheduled {
+  background: #e1f5fe;
+  color: #0288d1;
+}
+
+.status-completed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header" id="doctorInfo">
+
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('daily')">Приемы</button>
+    <button class="tab" onclick="switchTab('search')">Поиск пациента</button>
+  </div>
+
+  <div id="dailyView">
+    <div class="date-selector">
+      <label>Выберите дату:</label>
+      <input type="date" id="appointmentDate" onchange="loadAppointments()">
+    </div>
+
+    <div class="appointments-grid" id="appointmentsContainer">
+      <!-- Appointments will be loaded here -->
+    </div>
+  </div>
+
+  <div id="searchView" style="display: none;">
+    <div class="search-container">
+      <input type="text" class="search-input" id="patientSearch"
+             placeholder="Введите ФИО пациента..."
+             onkeyup="searchPatients()">
+    </div>
+    <div id="searchResults">
+      <!-- Search results will be displayed here -->
+    </div>
+  </div>
+</div>
+
+<script>
+const authToken = localStorage.getItem('authToken')
+
+
+function renderDoctorInfo(doctor) {
+    const doctorInfoHtml = `
+    <h1>Личный кабинет врача</h1>
+    <h2>${doctor.first_name} ${doctor.last_name}</h2>
+    <p>${doctor.specialization}</p>
+    `;
+    document.getElementById('doctorInfo').innerHTML = doctorInfoHtml;
+}
+
+
+
+let appointments = null
+//
+// const appointments = {
+//   "2024-01-20": [
+//     {
+//       id: 1,
+//       time: "10:00",
+//       patientName: "Иванов Сергей Петрович",
+//       notes: "Первичный прием",
+//       patientId: "P001"
+//     },
+//     {
+//       id: 2,
+//       time: "11:00",
+//       patientName: "Сидорова Анна Ивановна",
+//       notes: "Повторный прием",
+//       patientId: "P002"
+//     }
+//   ]
+// };
+
+const patientHistory = {
+  "P001": [
+    {
+      date: "2024-01-15",
+      time: "14:00",
+      notes: "Жалобы на боли в груди",
+      doctor: "Петрова М.С."
+    },
+    {
+      date: "2024-01-20",
+      time: "10:00",
+      notes: "Первичный прием",
+      doctor: "Петрова М.С."
+    }
+  ]
+};
+
+function createAppointmentCard(appointment) {
+  const card = document.createElement('div');
+  card.className = `appointment-card ${appointment.status === 'completed' ? 'completed' : ''}`;
+  const isoString = appointment.appointment_date;
+  const date = new Date(isoString);
+
+  // Получение времени в формате HH:MM
+  const hours = date.getUTCHours().toString().padStart(2, '0'); // Час в UTC
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0'); // Минуты
+
+  const time = `${hours}:${minutes}`;
+  card.innerHTML = `
+    <div class="appointment-header">
+      <span class="appointment-time">${time}</span>
+      <span class="patient-name" onclick="searchForPatient('${appointment.patient.first_name} ${appointment.patient.last_name}')">${appointment.patient.first_name} ${appointment.patient.last_name}</span>
+      <span class="status-badge status-${appointment.status}">
+        ${appointment.status === 'completed' ? 'Завершен' : 'Запланирован'}
+      </span>
+    </div>
+    <textarea class="notes-area" id="notes-${appointment.id}">${appointment.notes}</textarea>
+    <div class="button-group">
+      <button class="save-btn" onclick="saveNotes(${appointment.id})">Сохранить заметки</button>
+      <button class="complete-btn ${appointment.status === 'completed' ? 'completed' : ''}"
+              onclick="toggleAppointmentStatus(${appointment.id})">
+        ${appointment.status === 'completed' ? 'Отменить завершение' : 'Завершить прием'}
+      </button>
+    </div>
+  `;
+
+  return card;
+}
+
+function searchForPatient(patientName) {
+  switchTab('search');
+  const searchInput = document.getElementById('patientSearch');
+  searchInput.value = patientName;
+  searchPatients();
+}
+
+async function toggleAppointmentStatus(appointmentId) {
+  console.log(appointmentId)
+  const appointment = appointments.find(a => a.id === appointmentId);
+  console.log(appointment)
+  if (appointment) {
+    appointment.status = appointment.status === 'completed' ? 'scheduled' : 'completed';
+    try {
+        const response = await fetch(`/api/appointments/edit`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({"id": appointmentId, "status": appointment.status})
+    })
+        if (!response.ok) throw new Error('Failed to fetch appointments');
+
+
+    } catch (error) {
+        console.error('Error fetching appointments:', error);
+    }
+    await loadAppointments();
+  }
+}
+
+async function loadAppointments() {
+  const container = document.getElementById('appointmentsContainer');
+  const date = document.getElementById('appointmentDate').value;
+  container.innerHTML = '';
+
+  try {
+        const response = await fetch(`/api/doctors/doctor/appointments?input_date=${date}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        },
+        // body: JSON.stringify({"patient_id": patient.id})
+    })
+        if (!response.ok) throw new Error('Failed to fetch appointments');
+        appointments = await response.json();
+        console.log(appointments)
+        if (appointments) {
+        appointments.sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date));
+
+        appointments.forEach(appointment => {
+      container.appendChild(createAppointmentCard(appointment));
+    });
+  } else {
+    container.innerHTML = '<p>Нет записей на выбранную дату</p>';
+  }
+    } catch (error) {
+        container.innerHTML = '<div class="error-message">Ошибка при загрузке данных. Пожалуйста, попробуйте позже.</div>';
+        console.error('Error fetching appointments:', error);
+    }
+
+
+
+  //
+  // if (appointments[date]) {
+  //   appointments[date].forEach(appointment => {
+  //     container.appendChild(createAppointmentCard(appointment));
+  //   });
+  // } else {
+  //   container.innerHTML = '<p>Нет записей на выбранную дату</p>';
+  // }
+}
+
+async function saveNotes(appointmentId) {
+  const notes = document.getElementById(`notes-${appointmentId}`).value;
+  // Here you would typically send the notes to your backend
+  try {
+        const response = await fetch(`/api/appointments/edit`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({"id": appointmentId, "notes": notes})
+    })
+        if (!response.ok) throw new Error('Failed to fetch appointments');
+
+    } catch (error) {
+        console.error('Error fetching appointments:', error);
+    }
+  console.log(`Saving notes for appointment ${appointmentId}:`, notes);
+
+  // Show success message
+  alert('Заметки сохранены');
+}
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  const activeTab = document.querySelector(`.tab:nth-child(${tabName === 'daily' ? '1' : '2'})`);
+  activeTab.classList.add('active');
+
+  document.getElementById('dailyView').style.display = tabName === 'daily' ? 'block' : 'none';
+  document.getElementById('searchView').style.display = tabName === 'search' ? 'block' : 'none';
+}
+
+function searchPatients() {
+  const searchTerm = document.getElementById('patientSearch').value.toLowerCase();
+  const resultsContainer = document.getElementById('searchResults');
+  resultsContainer.innerHTML = '';
+
+  Object.entries(patientHistory).forEach(([patientId, history]) => {
+    const patientName = appointments["2024-01-20"].find(a => a.patientId === patientId)?.patientName;
+
+    if (patientName && patientName.toLowerCase().includes(searchTerm)) {
+      const historyDiv = document.createElement('div');
+      historyDiv.className = 'patient-history';
+
+      const visitsHtml = history.map(visit => `
+        <div class="appointment-card">
+          <div class="appointment-header">
+            <span>${visit.date} ${visit.time}</span>
+            <span>${visit.doctor}</span>
+          </div>
+          <p>${visit.notes}</p>
+        </div>
+      `).join('');
+
+      historyDiv.innerHTML = `
+        <h3>${patientName}</h3>
+        ${visitsHtml}
+      `;
+
+      resultsContainer.appendChild(historyDiv);
+    }
+  });
+
+  if (!resultsContainer.children.length) {
+    resultsContainer.innerHTML = '<p>Пациенты не найдены</p>';
+  }
+}
+
+
+async function fetchDoctorData() {
+    try {
+        const response = await fetch('/api/doctors/doctor', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        if (response.status === 401) {
+        window.location.href = '/pages/login';
+        }
+        if (!response.ok) {
+            throw new Error('Failed to fetch patient data');
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching patient data:', error);
+        throw error;
+    }
+}
+
+
+let doctorData = null
+// Set today's date by default and load appointments
+document.addEventListener('DOMContentLoaded', async () => {
+  doctorData = await fetchDoctorData();
+  renderDoctorInfo(doctorData);
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('appointmentDate').value = today;
+  loadAppointments();
+});
+</script>
+</body></html>

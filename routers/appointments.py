@@ -29,6 +29,12 @@ async def get_appointments_by_filter(filters: schemas.AppointmentFilter):
     return appointments
 
 
+@router.put("/edit", response_model=schemas.AppointmentBase | None)
+async def update_appointments_by_filter(filters: schemas.AppointmentFilter):
+    appointment = await AppointmentCRUD.edit(**filters.dict())
+    return appointment
+
+
 @router.get("/{appointment_id}", response_model=schemas.AppointmentBase)
 async def read_appointment(appointment_id: int):
     db_appointment = await AppointmentCRUD.find_one_or_none_by_id(id=appointment_id)

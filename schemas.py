@@ -74,6 +74,7 @@ class ScheduleFilter(BaseModel):
 
 
 class AppointmentBase(BaseModel):
+    id: Optional[int]
     patient_id: int
     doctor_id: int
     appointment_date: datetime
@@ -82,6 +83,7 @@ class AppointmentBase(BaseModel):
 
 
 class AppointmentFilter(BaseModel):
+    id: Optional[int] = None
     patient_id: Optional[int] = None
     doctor_id: Optional[int] = None
     input_date: Optional[date] = None
@@ -92,6 +94,10 @@ class AppointmentFilter(BaseModel):
 
 class AppointmentWithDoctorPatient(AppointmentBase):
     doctor: Doctor
+    patient: Patient
+
+
+class AppointmentWithPatient(AppointmentBase):
     patient: Patient
 
 

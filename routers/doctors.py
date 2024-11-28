@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from auth import decode_token, oauth2_scheme, get_current_user
-from crud import DoctorCRUD
+from crud import DoctorCRUD, AppointmentCRUD
 import schemas
+from datetime import date
 
 
 def is_doctor(token: str = Depends(oauth2_scheme)):
@@ -45,8 +46,24 @@ async def get_doctors_by_filter(filters: schemas.DoctorFilter):
     return doctors
 
 
+@router.get("/doctor", response_model=schemas.Doctor)
+async def read_doctor(user=Depends(get_current_user)):
+    doctor_id = user.doctor_id
+    db_doctor = await DoctorCRUD.find_one_or_none_by_id(id=doctor_id)
+    if db_doctor is None:
+        raise HTTPException(status_code=404, detail="doctor not found")
+    return db_doctor
+
+
+@router.post("/doctor/appointments", response_model=list[schemas.AppointmentWithPatient])
+async def read_doctor_appointments(input_date: date, doctor=Depends(get_current_user)):
+    doctor_id = doctor.doctor_id
+    db_appointments = await AppointmentCRUD.find_appointments_with_patient_by_date(doctor_id=doctor_id, input_date=input_date)
+    return db_appointments
+
+
 @router.get("/{doctor_id}", response_model=schemas.Doctor)
-async def read_doctor(doctor_id: int):
+async def read_doctor_by_id(doctor_id: int):
     db_doctor = await DoctorCRUD.find_one_or_none_by_id(id=doctor_id)
     if db_doctor is None:
         raise HTTPException(status_code=404, detail="doctor not found")
