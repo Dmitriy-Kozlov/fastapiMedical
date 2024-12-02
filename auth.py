@@ -70,6 +70,7 @@ def is_doctor(token: str = Depends(oauth2_scheme)):
 def is_proper_role(allowed_roles: list[str]):
     def dependency(token: str = Depends(oauth2_scheme)):
         current_user = decode_token(token)
+        print(current_user.get("role"))
         if current_user.get("role") not in allowed_roles:
             raise HTTPException(
                 status_code=403,

@@ -39,7 +39,7 @@ async def get_patients_by_filter(filters: schemas.PatientFilter,
 
 @router.get("/patient", response_model=schemas.Patient)
 async def read_patient(patient=Depends(get_current_user),
-                       user=Depends(is_proper_role([schemas.UserRole.PACIENT]))):
+                       user=Depends(is_proper_role([schemas.UserRole.PATIENT]))):
     patient_id = patient.patient_id
     db_patient = await PatientCRUD.find_one_or_none_by_id(id=patient_id)
     if db_patient is None:

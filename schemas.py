@@ -13,7 +13,7 @@ class AppointmentStatus(str, Enum):
 class UserRole(str, Enum):
     ADMIN = "admin"
     DOCTOR = "doctor"
-    PACIENT = "pacient"
+    PATIENT = "patient"
 
 
 class PatientBase(BaseModel):
