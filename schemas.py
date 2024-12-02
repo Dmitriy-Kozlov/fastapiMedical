@@ -10,11 +10,18 @@ class AppointmentStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    DOCTOR = "doctor"
+    PACIENT = "pacient"
+
+
 class PatientBase(BaseModel):
     first_name: str
     last_name: str
     email: EmailStr
     phone_number: str
+    birth_date: Optional[date]
 
 
 class PatientCreate(PatientBase):
@@ -29,6 +36,7 @@ class Patient(PatientBase):
 
 
 class PatientFilter(BaseModel):
+    id: Optional[int] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -73,13 +81,16 @@ class ScheduleFilter(BaseModel):
     end_time: Optional[time] = None
 
 
-class AppointmentBase(BaseModel):
-    id: Optional[int]
+class AppointmentCreate(BaseModel):
     patient_id: int
     doctor_id: int
     appointment_date: datetime
     status: AppointmentStatus = AppointmentStatus.SCHEDULED
     notes: Optional[str]
+
+
+class AppointmentBase(AppointmentCreate):
+    id: Optional[int]
 
 
 class AppointmentFilter(BaseModel):
@@ -125,3 +136,7 @@ class UserResponse(UserBase):
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+
+class PatientId(BaseModel):
+    patient_id: int | None = None

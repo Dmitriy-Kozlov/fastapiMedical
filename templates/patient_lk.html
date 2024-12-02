@@ -206,6 +206,97 @@ body {
     border-radius: 5px;
     margin: 1rem 0;
 }
+
+
+
+.edit-btn {
+    padding: 0.5rem 1rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.edit-btn:hover {
+    background: #3d8b40;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.close-btn {
+    border: none;
+    background: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #666;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.save-btn {
+    padding: 0.5rem 1rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.save-btn:hover {
+    background: #3d8b40;
+}
+
+
+
 </style>
 </head>
 <body>
@@ -226,6 +317,7 @@ body {
                 </div>
             </div>
 
+
             <div class="appointments-section">
                 <div class="appointments-tabs">
                     <div class="tab active" onclick="switchTab('upcoming', patientData, event)">Предстоящие приёмы</div>
@@ -241,8 +333,94 @@ body {
         </div>
     </div>
 
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Редактировать данные</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="last_name">Фамилия</label>
+                    <input type="text" id="last_name" name="last_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="first_name">Имя</label>
+                    <input type="text" id="first_name" name="first_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="birth_date">Дата рождения</label>
+                    <input type="date" id="birth_date" name="birth_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone_number">Телефон</label>
+                    <input type="tel" id="phone_number" name="phone_number" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <button type="submit" class="save-btn">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+
 <script>
 const authToken = localStorage.getItem('authToken')
+
+
+function openEditModal() {
+    const modal = document.getElementById('editModal');
+    // Populate form with current data
+    document.getElementById('last_name').value = patientData.last_name;
+    document.getElementById('first_name').value = patientData.first_name;
+    document.getElementById('birth_date').value = patientData.birth_date;
+    document.getElementById('phone_number').value = patientData.phone_number;
+    document.getElementById('email').value = patientData.email;
+    modal.style.display = 'block';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+
+async function handleSubmit(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    let updatedData = Object.fromEntries(formData.entries());
+    updatedData.id = patientData.id
+    console.log(updatedData)
+
+    try {
+        const response = await fetch('/api/patients/patient/edit', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedData)
+        });
+        if (response.status === 401 || response.status === 403) {
+            window.location.href = '/pages/login';
+        }
+        if (response.ok) {
+            patientData = await response.json();
+            patientData = await fetchPatientData();
+            renderPatientInfo(patientData);
+            closeEditModal();
+        } else {
+            throw new Error('Failed to update patient data');
+        }
+    } catch (error) {
+        console.error('Error updating patient data:', error);
+        alert('Произошла ошибка при обновлении данных');
+    }
+}
+
+
 async function fetchPatientData() {
     try {
         const response = await fetch('/api/patients/patient', {
@@ -250,7 +428,7 @@ async function fetchPatientData() {
                 'Authorization': `Bearer ${authToken}`
             }
         });
-        if (response.status === 401) {
+        if (response.status === 401 || response.status === 403) {
         window.location.href = '/pages/login';
         }
         if (!response.ok) {
@@ -265,6 +443,7 @@ async function fetchPatientData() {
 }
 
 function renderPatientInfo(patient) {
+    const formattedDate = formatDate(patient.birth_date)
     const patientInfoHtml = `
         <div class="profile-photo">
             <svg width="80" height="80" viewBox="0 0 24 24" fill="#999">
@@ -282,7 +461,7 @@ function renderPatientInfo(patient) {
             </li>
             <li class="info-item">
                 <div class="info-label">Дата рождения</div>
-                <div class="info-value">${patient.birthDate}</div>
+                <div class="info-value">${formattedDate}</div>
             </li>
             <li class="info-item">
                 <div class="info-label">Телефон</div>
@@ -293,6 +472,8 @@ function renderPatientInfo(patient) {
                 <div class="info-value">${patient.email}</div>
             </li>
         </ul>
+        <button class="edit-btn" onclick="openEditModal()">Редактировать данные</button>
+
     `;
     document.getElementById('patientInfo').innerHTML = patientInfoHtml;
 }
@@ -351,6 +532,9 @@ async function switchTab(typeApp, patient, event) {
         },
         body: JSON.stringify({"patient_id": patient.id})
     })
+        if (response.status === 401 || response.status === 403) {
+        window.location.href = '/pages/login';
+        }
         if (!response.ok) throw new Error('Failed to fetch appointments');
         const appointments = await response.json();
         appointments.sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date));
@@ -369,6 +553,16 @@ function handleLogout() {
         window.location.href = '/pages/login';
     }
 }
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    }).format(date);
+}
+
 let patientData = null;
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {

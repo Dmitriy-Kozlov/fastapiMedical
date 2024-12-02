@@ -55,3 +55,25 @@ async def get_current_user_with_role(token: str = Depends(oauth2_scheme)) -> Uni
         return doctor
 
     raise HTTPException(status_code=403, detail="Invalid role or associations")
+
+
+def is_doctor(token: str = Depends(oauth2_scheme)):
+    current_user = decode_token(token)
+    if current_user.get("role") != "doctor":
+        raise HTTPException(
+            status_code=403,
+            detail="Access forbidden: Only doctors are allowed"
+        )
+    return current_user
+
+
+def is_proper_role(allowed_roles: list[str]):
+    def dependency(token: str = Depends(oauth2_scheme)):
+        current_user = decode_token(token)
+        if current_user.get("role") not in allowed_roles:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Access forbidden: Only for {', '.join(allowed_roles)}"
+            )
+        return current_user
+    return dependency

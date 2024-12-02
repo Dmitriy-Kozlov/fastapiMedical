@@ -43,11 +43,14 @@ class BaseCRUD:
     async def find_by_filter(cls, **filter):
         async with async_session_maker() as session:
             date_filter = filter.pop("input_date", None)
+            last_name_filter = filter.pop("last_name", None)
             query = select(cls.model)
             if filter:
                 query = query.filter_by(**{k: v for k, v in filter.items() if v is not None})
             if date_filter:
                 query = query.filter(func.date(cls.model.appointment_date) == date_filter)
+            if last_name_filter:
+                query = query.filter(cls.model.last_name.ilike(f"%{last_name_filter}%"))
             result = await session.execute(query)
             plain_result = result.scalars().all()
             return plain_result
@@ -131,6 +134,20 @@ class AppointmentCRUD(BaseCRUD):
 
     @classmethod
     async def add(cls, patient_id, doctor_id, appointment_date, notes, status):
+        invalid_params = {
+            "patient_id": patient_id,
+            "doctor_id": doctor_id,
+            "appointment_date": appointment_date,
+            "notes": notes,
+            "status": status,
+        }
+        missing_params = [param for param, value in invalid_params.items() if value is None]
+
+        if missing_params:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing required parameters: {', '.join(missing_params)}"
+            )
         async with async_session_maker() as session:
             async with session.begin():
                 new_appointment = cls.model(

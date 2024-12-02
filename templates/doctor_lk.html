@@ -149,6 +149,38 @@ body {
   margin-bottom: 10px;
 }
 
+.search-results-list {
+  margin-top: 15px;
+}
+
+.patient-search-item {
+  padding: 10px;
+  border: 1px solid #e1e4e8;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.patient-search-item:hover {
+  background-color: #f8f9fa;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .patient-history {
   border: 1px solid #e1e4e8;
   border-radius: 8px;
@@ -195,71 +227,40 @@ body {
       <!-- Appointments will be loaded here -->
     </div>
   </div>
-
   <div id="searchView" style="display: none;">
     <div class="search-container">
       <input type="text" class="search-input" id="patientSearch"
-             placeholder="Введите ФИО пациента..."
-             onkeyup="searchPatients()">
+             placeholder="Введите фамилию пациента..."
+             onkeyup="handleSearchInput()">
+      <div id="searchSpinner" style="display: none;">
+        <div class="loading-spinner"></div>
+      </div>
     </div>
-    <div id="searchResults">
-      <!-- Search results will be displayed here -->
+    <div id="patientSearchResults" class="search-results-list">
+      <!-- Patient search results will be displayed here -->
+    </div>
+    <div id="patientHistory">
+      <!-- Selected patient history will be displayed here -->
     </div>
   </div>
+
 </div>
 
 <script>
 const authToken = localStorage.getItem('authToken')
+let searchTimeout;
 
 
 function renderDoctorInfo(doctor) {
     const doctorInfoHtml = `
     <h1>Личный кабинет врача</h1>
-    <h2>${doctor.first_name} ${doctor.last_name}</h2>
+    <h2>${doctor.last_name} ${doctor.first_name}</h2>
     <p>${doctor.specialization}</p>
     `;
     document.getElementById('doctorInfo').innerHTML = doctorInfoHtml;
 }
 
-
-
 let appointments = null
-//
-// const appointments = {
-//   "2024-01-20": [
-//     {
-//       id: 1,
-//       time: "10:00",
-//       patientName: "Иванов Сергей Петрович",
-//       notes: "Первичный прием",
-//       patientId: "P001"
-//     },
-//     {
-//       id: 2,
-//       time: "11:00",
-//       patientName: "Сидорова Анна Ивановна",
-//       notes: "Повторный прием",
-//       patientId: "P002"
-//     }
-//   ]
-// };
-
-const patientHistory = {
-  "P001": [
-    {
-      date: "2024-01-15",
-      time: "14:00",
-      notes: "Жалобы на боли в груди",
-      doctor: "Петрова М.С."
-    },
-    {
-      date: "2024-01-20",
-      time: "10:00",
-      notes: "Первичный прием",
-      doctor: "Петрова М.С."
-    }
-  ]
-};
 
 function createAppointmentCard(appointment) {
   const card = document.createElement('div');
@@ -267,15 +268,14 @@ function createAppointmentCard(appointment) {
   const isoString = appointment.appointment_date;
   const date = new Date(isoString);
 
-  // Получение времени в формате HH:MM
-  const hours = date.getUTCHours().toString().padStart(2, '0'); // Час в UTC
-  const minutes = date.getUTCMinutes().toString().padStart(2, '0'); // Минуты
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
 
   const time = `${hours}:${minutes}`;
   card.innerHTML = `
     <div class="appointment-header">
       <span class="appointment-time">${time}</span>
-      <span class="patient-name" onclick="searchForPatient('${appointment.patient.first_name} ${appointment.patient.last_name}')">${appointment.patient.first_name} ${appointment.patient.last_name}</span>
+      <span class="patient-name" onclick="searchForPatient('${appointment.patient.last_name} ${appointment.patient.first_name}')">${appointment.patient.last_name} ${appointment.patient.first_name}</span>
       <span class="status-badge status-${appointment.status}">
         ${appointment.status === 'completed' ? 'Завершен' : 'Запланирован'}
       </span>
@@ -296,8 +296,8 @@ function createAppointmentCard(appointment) {
 function searchForPatient(patientName) {
   switchTab('search');
   const searchInput = document.getElementById('patientSearch');
-  searchInput.value = patientName;
-  searchPatients();
+  searchInput.value = patientName.split(' ')[0]; // Use only last name for search
+  handleSearchInput();
 }
 
 async function toggleAppointmentStatus(appointmentId) {
@@ -315,6 +315,9 @@ async function toggleAppointmentStatus(appointmentId) {
         },
         body: JSON.stringify({"id": appointmentId, "status": appointment.status})
     })
+      if (response.status === 401 || response.status === 403) {
+        window.location.href = '/pages/login';
+        }
         if (!response.ok) throw new Error('Failed to fetch appointments');
 
 
@@ -337,8 +340,11 @@ async function loadAppointments() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`
         },
-        // body: JSON.stringify({"patient_id": patient.id})
     })
+    if (response.status === 401 || response.status === 403) {
+        window.location.href = '/pages/login';
+        }
+
         if (!response.ok) throw new Error('Failed to fetch appointments');
         appointments = await response.json();
         console.log(appointments)
@@ -356,21 +362,10 @@ async function loadAppointments() {
         console.error('Error fetching appointments:', error);
     }
 
-
-
-  //
-  // if (appointments[date]) {
-  //   appointments[date].forEach(appointment => {
-  //     container.appendChild(createAppointmentCard(appointment));
-  //   });
-  // } else {
-  //   container.innerHTML = '<p>Нет записей на выбранную дату</p>';
-  // }
 }
 
 async function saveNotes(appointmentId) {
   const notes = document.getElementById(`notes-${appointmentId}`).value;
-  // Here you would typically send the notes to your backend
   try {
         const response = await fetch(`/api/appointments/edit`, {
         method: 'PUT',
@@ -380,6 +375,10 @@ async function saveNotes(appointmentId) {
         },
         body: JSON.stringify({"id": appointmentId, "notes": notes})
     })
+    if (response.status === 401 || response.status === 403) {
+        window.location.href = '/pages/login';
+        }
+
         if (!response.ok) throw new Error('Failed to fetch appointments');
 
     } catch (error) {
@@ -391,6 +390,119 @@ async function saveNotes(appointmentId) {
   alert('Заметки сохранены');
 }
 
+
+function handleSearchInput() {
+  clearTimeout(searchTimeout);
+  const searchTerm = document.getElementById('patientSearch').value.trim();
+
+  if (searchTerm.length >= 3) {
+    document.getElementById('searchSpinner').style.display = 'block';
+    searchTimeout = setTimeout(() => {
+      searchPatients(searchTerm);
+    }, 500);
+  } else {
+    document.getElementById('patientSearchResults').innerHTML = '';
+    document.getElementById('patientHistory').innerHTML = '';
+  }
+}
+
+async function searchPatients(searchTerm) {
+  try {
+    const response = await fetch(`/api/patients/filter`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({"last_name": searchTerm})
+    })
+    if (response.status === 401 || response.status === 403) {
+        window.location.href = '/pages/login';
+        }
+    const patients = await response.json();
+    const resultsContainer = document.getElementById('patientSearchResults');
+    document.getElementById('searchSpinner').style.display = 'none';
+
+    if (patients.length === 0) {
+      resultsContainer.innerHTML = '<p>Пациенты не найдены</p>';
+      return;
+    }
+
+    resultsContainer.innerHTML = patients.map(patient => `
+      <div class="patient-search-item" onclick="loadPatientHistory('${patient.id}')">
+        <strong>${patient.last_name} ${patient.first_name}</strong><br>
+        <small>Дата рождения: ${patient.birth_date}</small>
+      </div>
+    `).join('');
+
+  } catch (error) {
+    console.error('Error searching patients:', error);
+    document.getElementById('searchSpinner').style.display = 'none';
+    document.getElementById('patientSearchResults').innerHTML =
+      '<p>Произошла ошибка при поиске пациентов</p>';
+  }
+}
+
+async function loadPatientHistory(patientId) {
+  try {
+    const response = await fetch(`/api/patients/patient/appointments`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({"patient_id": patientId})
+    })
+    if (response.status === 401 || response.status === 403) {
+        window.location.href = '/pages/login';
+        }
+    const history = await response.json();
+    history.sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date));
+
+    const historyContainer = document.getElementById('patientHistory');
+
+
+    const visitsHtml = history.map(visit => {
+    const appointmentDate = new Date(visit.appointment_date);
+    const formattedDate = appointmentDate.toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+    const formattedTime = appointmentDate.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
+    return `
+      <div class="appointment-card ${visit.status === 'completed' ? 'completed' : ''}">
+        <div class="appointment-header">
+          <span>${formattedDate} ${formattedTime}</span>
+          <span>${visit.doctor.first_name} ${visit.doctor.last_name} (${visit.doctor.specialization})</span>
+          <span class="status-badge status-${visit.status}">
+            ${visit.status === 'completed' ? 'Завершен' : 'Запланирован'}
+          </span>
+        </div>
+        <p>${visit.notes || 'Без заметок'}</p>
+      </div>
+    `;
+}).join('');
+
+    historyContainer.innerHTML = `
+      <div class="patient-history">
+        <h3>${history[0].patient.last_name} ${history[0].patient.first_name}</h3>
+        ${visitsHtml}
+      </div>
+    `;
+
+  } catch (error) {
+    console.error('Error loading patient history:', error);
+    document.getElementById('patientHistory').innerHTML =
+      '<p>Произошла ошибка при загрузке истории пациента</p>';
+  }
+}
+
+
 function switchTab(tabName) {
   document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
   const activeTab = document.querySelector(`.tab:nth-child(${tabName === 'daily' ? '1' : '2'})`);
@@ -398,42 +510,6 @@ function switchTab(tabName) {
 
   document.getElementById('dailyView').style.display = tabName === 'daily' ? 'block' : 'none';
   document.getElementById('searchView').style.display = tabName === 'search' ? 'block' : 'none';
-}
-
-function searchPatients() {
-  const searchTerm = document.getElementById('patientSearch').value.toLowerCase();
-  const resultsContainer = document.getElementById('searchResults');
-  resultsContainer.innerHTML = '';
-
-  Object.entries(patientHistory).forEach(([patientId, history]) => {
-    const patientName = appointments["2024-01-20"].find(a => a.patientId === patientId)?.patientName;
-
-    if (patientName && patientName.toLowerCase().includes(searchTerm)) {
-      const historyDiv = document.createElement('div');
-      historyDiv.className = 'patient-history';
-
-      const visitsHtml = history.map(visit => `
-        <div class="appointment-card">
-          <div class="appointment-header">
-            <span>${visit.date} ${visit.time}</span>
-            <span>${visit.doctor}</span>
-          </div>
-          <p>${visit.notes}</p>
-        </div>
-      `).join('');
-
-      historyDiv.innerHTML = `
-        <h3>${patientName}</h3>
-        ${visitsHtml}
-      `;
-
-      resultsContainer.appendChild(historyDiv);
-    }
-  });
-
-  if (!resultsContainer.children.length) {
-    resultsContainer.innerHTML = '<p>Пациенты не найдены</p>';
-  }
 }
 
 
@@ -444,7 +520,7 @@ async function fetchDoctorData() {
                 'Authorization': `Bearer ${authToken}`
             }
         });
-        if (response.status === 401) {
+        if (response.status === 401 || response.status === 403) {
         window.location.href = '/pages/login';
         }
         if (!response.ok) {
@@ -460,7 +536,6 @@ async function fetchDoctorData() {
 
 
 let doctorData = null
-// Set today's date by default and load appointments
 document.addEventListener('DOMContentLoaded', async () => {
   doctorData = await fetchDoctorData();
   renderDoctorInfo(doctorData);

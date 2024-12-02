@@ -231,14 +231,21 @@ document.getElementById('appointmentModal').addEventListener('click', (e) => {
 document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     console.log(document.getElementById('appointmentTime').value)
-    const formData = {
-        patient_id: localStorage.getItem('patientId'), // Предполагается, что `patientId` сохранен в localStorage
+    let patient_id = localStorage.getItem('patientId') // Предполагается, что `patientId` сохранен в localStorage
+    console.log(patient_id)
+    // if (patient_id == null) {
+if (!patient_id || patient_id === "null") {
+  alert(`Ошибка: Id пациента не найдено`);
+} else {
+      const formData = {
+        patient_id: patient_id,
         doctor_id: doctors.find(d => d.name === document.getElementById('doctorName').value)?.id,
         appointment_date: new Date(
             `${document.getElementById('appointmentDate').value}T${document.getElementById('appointmentTime').value}`
         ).toISOString(),
         notes: '' // Если есть поле для заметок, можно заменить на его значение
     };
+
 
     try {
         const response = await fetch('/api/appointments/', {
@@ -250,8 +257,8 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
             body: JSON.stringify(formData)
         });
         console.log(formData)
-        if (response.status === 401) {
-            window.location.href = '/pages/login';
+        if (response.status === 401 || response.status === 403) {
+        window.location.href = '/pages/login';
         }
 
         if (!response.ok) {
@@ -272,8 +279,10 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
         }, 2000);
     } catch (error) {
         console.error('Error creating appointment:', error);
-        alert(`Ошибка: ${error.message}`);
+        alert(`Ошибка: ${error.detail}`);
     }
+}
+
 });
 
 
@@ -346,7 +355,7 @@ async function fetchDoctorsData() {
                 'Authorization': `Bearer ${authToken}`
             }
         });
-        if (response.status === 401) {
+        if (response.status === 401 || response.status === 403) {
         window.location.href = '/pages/login';
         }
         if (!response.ok) {
