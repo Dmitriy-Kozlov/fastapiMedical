@@ -22,6 +22,11 @@ async def get_doctor_lk_html(request: Request):
     return templates.TemplateResponse(name='doctor_lk.html', context={'request': request})
 
 
+@router.get('/adminlk')
+async def get_admin_lk_html(request: Request):
+    return templates.TemplateResponse(name='admin_lk.html', context={'request': request})
+
+
 @router.get('/schedule')
 async def get_schedule_html(request: Request):
     return templates.TemplateResponse(name='schedule.html', context={'request': request})

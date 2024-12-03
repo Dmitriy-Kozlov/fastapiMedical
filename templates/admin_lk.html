@@ -1,0 +1,669 @@
+<html><head><base href="." />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Медицинский центр - Админ панель</title>
+<style>
+:root {
+    --primary: #2b87d1;
+    --primary-dark: #1a68a5;
+    --accent: #4CAF50;
+    --gray: #f5f7fa;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+}
+
+.header {
+    background: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    width: 50px;
+    height: 50px;
+}
+
+.profile-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.admin-tabs {
+    display: flex;
+    margin-bottom: 1.5rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: 16px;
+  color: #666;
+}
+
+.tab.active {
+  color: #3498db;
+  border-bottom: 2px solid #3498db;
+  margin-bottom: -2px;
+}
+
+.admin-content {
+    display: none;
+}
+
+.admin-content.active {
+    display: block;
+}
+
+.search-container {
+    margin-bottom: 1rem;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.role-select {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.role-select label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-card {
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.save-btn {
+    padding: 0.5rem 1rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.save-btn:hover {
+    background: #3d8b40;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border-radius: 10px;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.edit-btn {
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.edit-btn:hover {
+    background: var(--primary-dark);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.logout-btn {
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+    background: var(--primary-dark);
+}
+
+</style>
+</head>
+<body>
+    <header class="header">
+        <svg class="logo" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#2b87d1" stroke-width="5"/>
+            <path d="M30 50 h40 M50 30 v40" stroke="#2b87d1" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <button class="logout-btn" onclick="handleLogout()">Выйти</button>
+    </header>
+
+    <div class="profile-container">
+        <div class="admin-tabs">
+            <div class="tab active" onclick="switchAdminTab('register')">Регистрация</div>
+            <div class="tab" onclick="switchAdminTab('patients')">Пациенты</div>
+            <div class="tab" onclick="switchAdminTab('doctors')">Доктора</div>
+            <div class="tab" onclick="switchAdminTab('appointments')">Записи</div>
+        </div>
+
+        <!-- Register User Tab -->
+        <div id="registerTab" class="admin-content active">
+            <div class="info-card">
+                <h2>Регистрация пользователя</h2>
+                <form id="registerForm" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="reg_firstName">Имя</label>
+                        <input type="text" id="reg_firstName" name="first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg_lastName">Фамилия</label>
+                        <input type="text" id="reg_lastName" name="last_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg_email">Email</label>
+                        <input type="email" id="reg_email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg_password">Пароль</label>
+                        <input type="password" id="reg_password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg_phone">Телефон</label>
+                        <input type="tel" id="reg_phone" name="phone_number" required>
+                    </div>
+                    <div class="form-group" id="specializationGroup" style="display: none;">
+                        <label for="reg_specialization">Специализация</label>
+                        <input type="text" id="reg_specialization" name="specialization">
+                    </div>
+                    <div class="form-group">
+                        <label>Роль</label>
+                        <div class="role-select">
+                            <label>
+                                <input type="radio" name="role" value="patient" checked onchange="toggleSpecialization()">
+                                Пациент
+                            </label>
+                            <label>
+                                <input type="radio" name="role" value="doctor" onchange="toggleSpecialization()">
+                                Доктор
+                            </label>
+                            <label>
+                                <input type="radio" name="role" value="admin" onchange="toggleSpecialization()">
+                                Администратор
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="save-btn">Зарегистрировать</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Patients Tab -->
+        <div id="patientsTab" class="admin-content">
+            <div class="info-card">
+                <div class="search-container">
+                    <input type="text" id="patientSearch" placeholder="Поиск по фамилии..."
+                           onkeyup="filterPatients()">
+                </div>
+                <div id="patientsList">
+                    <!-- Patients will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctors Tab -->
+        <div id="doctorsTab" class="admin-content">
+            <div class="info-card">
+                <div class="search-container">
+                    <input type="text" id="doctorSearch" placeholder="Поиск по фамилии..."
+                           onkeyup="filterDoctors()">
+                </div>
+                <div id="doctorsList">
+                    <!-- Doctors will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointments Tab -->
+        <div id="appointmentsTab" class="admin-content">
+            <div class="info-card">
+                <h2>Создание записи</h2>
+                <form id="appointmentForm" onsubmit="handleAppointmentCreate(event)">
+                    <div class="form-group">
+                        <label for="app_patient">Пациент</label>
+                        <select id="app_patient" name="patient_id" required>
+                            <!-- Patients will be loaded here -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="app_doctor">Доктор</label>
+                        <select id="app_doctor" name="doctor_id" required>
+                            <!-- Doctors will be loaded here -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="app_date">Дата</label>
+                        <input type="date" id="app_date" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="app_time">Время</label>
+                        <input type="time" id="app_time" name="time" required>
+                    </div>
+                    <button type="submit" class="save-btn">Создать запись</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal for Patients/Doctors -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Редактировать данные</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editForm" onsubmit="handleEditSubmit(event)">
+                <input type="hidden" id="edit_id" name="id">
+                <input type="hidden" id="edit_type" name="type">
+                <div class="form-group">
+                    <label for="edit_firstName">Имя</label>
+                    <input type="text" id="edit_firstName" name="first_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_lastName">Фамилия</label>
+                    <input type="text" id="edit_lastName" name="last_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_email">Email</label>
+                    <input type="email" id="edit_email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_password">Новый пароль</label>
+                    <input type="password" id="edit_password" name="password">
+                </div>
+                <div class="form-group">
+                    <label for="edit_phone">Телефон</label>
+                    <input type="tel" id="edit_phone" name="phone_number" required>
+                </div>
+                <div class="form-group" id="edit_specializationGroup">
+                    <label for="edit_specialization">Специализация</label>
+                    <input type="text" id="edit_specialization" name="specialization">
+                </div>
+                <div class="form-group" id="edit_birthDateGroup">
+                    <label for="edit_birthDate">Дата рождения</label>
+                    <input type="date" id="edit_birthDate" name="birth_date">
+                </div>
+                <button type="submit" class="save-btn">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+<script>
+function switchAdminTab(tabName) {
+    const tabs = document.querySelectorAll('.tab');
+    const contents = document.querySelectorAll('.admin-content');
+
+    tabs.forEach(tab => tab.classList.remove('active'));
+    contents.forEach(content => content.classList.remove('active'));
+
+    event.target.classList.add('active');
+    document.getElementById(`${tabName}Tab`).classList.add('active');
+
+    if (tabName === 'patients') loadPatients();
+    if (tabName === 'doctors') loadDoctors();
+    if (tabName === 'appointments') {
+        loadPatientsForSelect();
+        loadDoctorsForSelect();
+    }
+}
+
+function toggleSpecialization() {
+    const specializationGroup = document.getElementById('specializationGroup');
+    const roleValue = document.querySelector('input[name="role"]:checked').value;
+    specializationGroup.style.display = roleValue === 'doctor' ? 'block' : 'none';
+}
+
+async function handleRegister(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        const response = await fetch('/api/users/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert('Пользователь успешно зарегистрирован');
+            event.target.reset();
+        } else {
+            throw new Error('Failed to register user');
+        }
+    } catch (error) {
+        console.error('Error registering user:', error);
+        alert('Ошибка при регистрации пользователя');
+    }
+}
+
+async function loadPatients() {
+    try {
+        const response = await fetch('/api/patients/all');
+        const patients = await response.json();
+        displayPatients(patients);
+    } catch (error) {
+        console.error('Error loading patients:', error);
+    }
+}
+
+async function loadDoctors() {
+    try {
+        const response = await fetch('/api/doctors/all');
+        const doctors = await response.json();
+        displayDoctors(doctors);
+    } catch (error) {
+        console.error('Error loading doctors:', error);
+    }
+}
+
+function displayPatients(patients) {
+    const container = document.getElementById('patientsList');
+    container.innerHTML = patients.map(patient => `
+        <div class="user-card" data-lastname="${patient.last_name.toLowerCase()}">
+            <div class="user-info">
+                <h3>${patient.last_name} ${patient.first_name}</h3>
+                <div>${patient.email} | ${patient.phone_number}</div>
+            </div>
+            <div class="user-actions">
+                <button onclick="editPatient(${patient.id})" class="edit-btn">Редактировать</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function displayDoctors(doctors) {
+    const container = document.getElementById('doctorsList');
+    container.innerHTML = doctors.map(doctor => `
+        <div class="user-card" data-lastname="${doctor.last_name.toLowerCase()}">
+            <div class="user-info">
+                <h3>${doctor.last_name} ${doctor.first_name}</h3>
+                <div>${doctor.specialization} | ${doctor.email}</div>
+            </div>
+            <div class="user-actions">
+                <button onclick="editDoctor(${doctor.id})" class="edit-btn">Редактировать</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterPatients() {
+    const search = document.getElementById('patientSearch').value.toLowerCase();
+    const cards = document.querySelectorAll('#patientsList .user-card');
+    cards.forEach(card => {
+        const lastName = card.dataset.lastname;
+        card.style.display = lastName.includes(search) ? 'flex' : 'none';
+    });
+}
+
+function filterDoctors() {
+    const search = document.getElementById('doctorSearch').value.toLowerCase();
+    const cards = document.querySelectorAll('#doctorsList .user-card');
+    cards.forEach(card => {
+        const lastName = card.dataset.lastname;
+        card.style.display = lastName.includes(search) ? 'flex' : 'none';
+    });
+}
+
+async function handleAppointmentCreate(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+    const appointmentDate = new Date(`${data.date}T${data.time}:00`);
+    data.appointment_date = appointmentDate.toISOString(); // Преобразуем в строку ISO 8601
+    data.notes = ''
+    // Удаляем поля date и time, так как они больше не нужны
+    delete data.date;
+    delete data.time;
+    console.log(data)
+
+    try {
+        const response = await fetch('/api/appointments/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+        alert('Запись успешно создана');
+        event.target.reset();
+    } else {
+        const errorData = await response.json(); // Читаем тело ответа как JSON
+        if (errorData.detail) {
+            alert(`Ошибка: ${errorData.detail}`); // Отображаем сообщение сервера
+        } else {
+            alert('Ошибка при создании записи. Попробуйте снова.');
+        }}
+    } catch (error) {
+        console.error('Error creating appointment:', error);
+        alert('Ошибка при создании записи');
+    }
+}
+
+async function editPatient(id) {
+    try {
+        const response = await fetch(`/api/patients/${id}`);
+        const patient = await response.json();
+
+        document.getElementById('edit_id').value = patient.id;
+        document.getElementById('edit_type').value = 'patient';
+        document.getElementById('edit_firstName').value = patient.first_name;
+        document.getElementById('edit_lastName').value = patient.last_name;
+        document.getElementById('edit_email').value = patient.email;
+        document.getElementById('edit_phone').value = patient.phone_number;
+        document.getElementById('edit_birthDate').value = patient.birth_date;
+
+        document.getElementById('edit_specializationGroup').style.display = 'none';
+        document.getElementById('edit_birthDateGroup').style.display = 'block';
+
+        document.getElementById('editModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading patient data:', error);
+    }
+}
+
+async function editDoctor(id) {
+    try {
+        const response = await fetch(`/api/doctors/${id}`);
+        const doctor = await response.json();
+
+        document.getElementById('edit_id').value = doctor.id;
+        document.getElementById('edit_type').value = 'doctor';
+        document.getElementById('edit_firstName').value = doctor.first_name;
+        document.getElementById('edit_lastName').value = doctor.last_name;
+        document.getElementById('edit_email').value = doctor.email;
+        document.getElementById('edit_phone').value = doctor.phone_number;
+        document.getElementById('edit_specialization').value = doctor.specialization;
+
+        document.getElementById('edit_specializationGroup').style.display = 'block';
+        document.getElementById('edit_birthDateGroup').style.display = 'none';
+
+        document.getElementById('editModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading doctor data:', error);
+    }
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    document.getElementById('editForm').reset();
+}
+
+async function handleEditSubmit(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+    const type = data.type;
+    delete data.type;
+
+    try {
+        const endpoint = type === 'patient' ? '/api/patients/patient/edit' : '/api/doctors/doctor/edit';
+        const response = await fetch(endpoint, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert('Данные успешно обновлены');
+            closeEditModal();
+            if (type === 'patient') {
+                loadPatients();
+            } else {
+                loadDoctors();
+            }
+        } else {
+            throw new Error('Failed to update data');
+        }
+    } catch (error) {
+        console.error('Error updating data:', error);
+        alert('Ошибка при обновлении данных');
+    }
+}
+
+async function loadPatientsForSelect() {
+    try {
+        const response = await fetch('/api/patients/all');
+        const patients = await response.json();
+        const select = document.getElementById('app_patient');
+        select.innerHTML = patients.map(patient =>
+            `<option value="${patient.id}">${patient.last_name} ${patient.first_name}</option>`
+        ).join('');
+    } catch (error) {
+        console.error('Error loading patients for select:', error);
+    }
+}
+
+async function loadDoctorsForSelect() {
+    try {
+        const response = await fetch('/api/doctors/all');
+        const doctors = await response.json();
+        const select = document.getElementById('app_doctor');
+        select.innerHTML = doctors.map(doctor =>
+            `<option value="${doctor.id}">${doctor.last_name} ${doctor.first_name} (${doctor.specialization})</option>`
+        ).join('');
+    } catch (error) {
+        console.error('Error loading doctors for select:', error);
+    }
+}
+
+function handleLogout() {
+    if (confirm('Вы уверены, что хотите выйти?')) {
+        localStorage.removeItem('authToken')
+        window.location.href = '/pages/login';
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    switchAdminTab('register');
+});
+</script>
+</body></html>

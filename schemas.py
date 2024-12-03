@@ -60,6 +60,7 @@ class Doctor(DoctorBase):
 
 
 class DoctorFilter(BaseModel):
+    id: Optional[int] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None

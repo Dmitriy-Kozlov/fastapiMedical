@@ -148,6 +148,12 @@ class AppointmentCRUD(BaseCRUD):
                 status_code=400,
                 detail=f"Missing required parameters: {', '.join(missing_params)}"
             )
+        appointment = await cls.find_by_filter(doctor_id=doctor_id, appointment_date=appointment_date)
+        if appointment:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Appointment for date: {appointment_date} already exists"
+            )
         async with async_session_maker() as session:
             async with session.begin():
                 new_appointment = cls.model(
