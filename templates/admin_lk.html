@@ -368,10 +368,10 @@ body {
                     <label for="edit_email">Email</label>
                     <input type="email" id="edit_email" name="email" required>
                 </div>
-                <div class="form-group">
-                    <label for="edit_password">Новый пароль</label>
-                    <input type="password" id="edit_password" name="password">
-                </div>
+<!--                <div class="form-group">-->
+<!--                    <label for="edit_password">Новый пароль</label>-->
+<!--                    <input type="password" id="edit_password" name="password">-->
+<!--                </div>-->
                 <div class="form-group">
                     <label for="edit_phone">Телефон</label>
                     <input type="tel" id="edit_phone" name="phone_number" required>
@@ -390,6 +390,8 @@ body {
     </div>
 
 <script>
+const authToken = localStorage.getItem('authToken')
+
 function switchAdminTab(tabName) {
     const tabs = document.querySelectorAll('.tab');
     const contents = document.querySelectorAll('.admin-content');
@@ -420,10 +422,11 @@ async function handleRegister(event) {
     const data = Object.fromEntries(formData.entries());
 
     try {
-        const response = await fetch('/api/users/register', {
+        const response = await fetch('/api/auth/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify(data)
         });
@@ -442,7 +445,14 @@ async function handleRegister(event) {
 
 async function loadPatients() {
     try {
-        const response = await fetch('/api/patients/all');
+        // const response = await fetch('/api/patients/all');
+        const response = await fetch('/api/patients/all', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+        });
         const patients = await response.json();
         displayPatients(patients);
     } catch (error) {
@@ -452,7 +462,14 @@ async function loadPatients() {
 
 async function loadDoctors() {
     try {
-        const response = await fetch('/api/doctors/all');
+        // const response = await fetch('/api/doctors/all');
+        const response = await fetch('/api/doctors/all', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+        });
         const doctors = await response.json();
         displayDoctors(doctors);
     } catch (error) {
@@ -525,6 +542,7 @@ async function handleAppointmentCreate(event) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify(data)
         });
@@ -547,7 +565,14 @@ async function handleAppointmentCreate(event) {
 
 async function editPatient(id) {
     try {
-        const response = await fetch(`/api/patients/${id}`);
+        // const response = await fetch(`/api/patients/${id}`);
+        const response = await fetch(`/api/patients/${id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+        });
         const patient = await response.json();
 
         document.getElementById('edit_id').value = patient.id;
@@ -569,7 +594,14 @@ async function editPatient(id) {
 
 async function editDoctor(id) {
     try {
-        const response = await fetch(`/api/doctors/${id}`);
+        // const response = await fetch(`/api/doctors/${id}`);
+        const response = await fetch(`/api/doctors/${id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+        });
         const doctor = await response.json();
 
         document.getElementById('edit_id').value = doctor.id;
@@ -600,13 +632,23 @@ async function handleEditSubmit(event) {
     const data = Object.fromEntries(formData.entries());
     const type = data.type;
     delete data.type;
+    if (!data.birth_date) {
+        data.birth_date = null;
+    }
 
     try {
         const endpoint = type === 'patient' ? '/api/patients/patient/edit' : '/api/doctors/doctor/edit';
+        if (type === 'patient' ) {
+            delete data.specialization
+        }
+        if (type === 'doctor' ) {
+            delete data.birth_date
+        }
         const response = await fetch(endpoint, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify(data)
         });
@@ -630,7 +672,14 @@ async function handleEditSubmit(event) {
 
 async function loadPatientsForSelect() {
     try {
-        const response = await fetch('/api/patients/all');
+        // const response = await fetch('/api/patients/all');
+         const response = await fetch('/api/patients/all', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+        });
         const patients = await response.json();
         const select = document.getElementById('app_patient');
         select.innerHTML = patients.map(patient =>
@@ -643,7 +692,14 @@ async function loadPatientsForSelect() {
 
 async function loadDoctorsForSelect() {
     try {
-        const response = await fetch('/api/doctors/all');
+        // const response = await fetch('/api/doctors/all');
+        const response = await fetch('/api/doctors/all', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+        });
         const doctors = await response.json();
         const select = document.getElementById('app_doctor');
         select.innerHTML = doctors.map(doctor =>

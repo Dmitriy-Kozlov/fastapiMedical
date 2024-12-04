@@ -21,8 +21,7 @@ router = APIRouter(
 
 
 @router.get("/all", response_model=list[schemas.Doctor])
-# async def get_all_doctors(user=Depends(get_current_user)):
-async def get_all_doctors():
+async def get_all_doctors(user=Depends(get_current_user)):
     doctors = await DoctorCRUD.find_all()
     return doctors
 
@@ -50,8 +49,7 @@ async def read_doctor(user=Depends(get_current_user),
 
 
 @router.put("/doctor/edit", response_model=schemas.Doctor | None)
-# async def update_patient_by_filter(filters: schemas.DoctorFilter, patient=Depends(get_current_user)):
-async def update_doctor_by_filter(filters: schemas.DoctorFilter):
+async def update_patient_by_filter(filters: schemas.DoctorFilter, patient=Depends(get_current_user)):
     doctor_bd = await DoctorCRUD.edit(**filters.dict())
     return doctor_bd
 
@@ -65,10 +63,8 @@ async def read_doctor_appointments(input_date: date, doctor=Depends(get_current_
 
 
 @router.get("/{doctor_id}", response_model=schemas.Doctor)
-# async def read_doctor_by_id(doctor_id: int,
-#                             user=Depends(is_proper_role([schemas.UserRole.ADMIN, schemas.UserRole.DOCTOR]))):
 async def read_doctor_by_id(doctor_id: int,
-                            ):
+                            user=Depends(is_proper_role([schemas.UserRole.ADMIN, schemas.UserRole.DOCTOR]))):
     db_doctor = await DoctorCRUD.find_one_or_none_by_id(id=doctor_id)
     if db_doctor is None:
         raise HTTPException(status_code=404, detail="doctor not found")

@@ -15,8 +15,7 @@ router = APIRouter(
 
 
 @router.post("/", response_model=schemas.AppointmentBase)
-# async def create_appointment(appointment: schemas.AppointmentCreate, user=Depends(get_current_user)):
-async def create_appointment(appointment: schemas.AppointmentCreate):
+async def create_appointment(appointment: schemas.AppointmentCreate, user=Depends(get_current_user)):
     appointment_db = await AppointmentCRUD.add(**appointment.dict())
     return appointment_db
 

@@ -18,8 +18,7 @@ router = APIRouter(
 
 
 @router.get("/all", response_model=list[schemas.Patient])
-# async def get_all_patients(user=Depends(is_proper_role(["admin", "doctor"]))):
-async def get_all_patients():
+async def get_all_patients(user=Depends(is_proper_role(["admin", "doctor"]))):
     patients = await PatientCRUD.find_all()
     return patients
 
@@ -31,17 +30,8 @@ async def get_patients_by_filter(filters: schemas.PatientFilter,
     return patients
 
 
-@router.get("/{patient_id}", response_model=schemas.Patient)
-async def read_patient(patient_id: int):
-    db_patient = await PatientCRUD.find_one_or_none_by_id(id=patient_id)
-    if db_patient is None:
-        raise HTTPException(status_code=404, detail="Patient not found")
-    return db_patient
-
-
 @router.get("/patient", response_model=schemas.Patient)
-async def read_patient(patient=Depends(get_current_user),
-                       user=Depends(is_proper_role([schemas.UserRole.PATIENT]))):
+async def read_patient(patient=Depends(get_current_user), user=Depends(is_proper_role([schemas.UserRole.PATIENT]))):
     patient_id = patient.patient_id
     db_patient = await PatientCRUD.find_one_or_none_by_id(id=patient_id)
     if db_patient is None:
@@ -60,3 +50,11 @@ async def read_patient_appointments(status: str = None, patient_id: schemas.Pati
     patient_id = user.patient_id if user.patient_id else patient_id.patient_id
     db_appointments = await AppointmentCRUD.find_appointments_with_doctor_patient(patient_id=patient_id, status=status)
     return db_appointments
+
+
+@router.get("/{patient_id}", response_model=schemas.Patient)
+async def read_patient(patient_id: int):
+    db_patient = await PatientCRUD.find_one_or_none_by_id(id=patient_id)
+    if db_patient is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    return db_patient
