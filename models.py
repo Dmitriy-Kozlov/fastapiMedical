@@ -36,6 +36,16 @@ class Doctor(Base):
     user = relationship("User", back_populates="doctor", uselist=False)
 
 
+class Admin(Base):
+    __tablename__ = "admins"
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    phone_number = Column(String, nullable=False)
+    user = relationship("User", back_populates="admin", uselist=False)
+
+
 class Schedule(Base):
     __tablename__ = "schedules"
     id = Column(Integer, primary_key=True, index=True)
@@ -68,9 +78,11 @@ class User(Base):
     role = Column(String, nullable=False)  # "doctor" или "patient"
     patient_id = Column(Integer, ForeignKey("patients.id"), nullable=True)
     doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=True)
+    admin_id = Column(Integer, ForeignKey("admins.id"), nullable=True)
 
     patient = relationship("Patient", back_populates="user")
     doctor = relationship("Doctor", back_populates="user")
+    admin = relationship("Admin", back_populates="user")
 
     @classmethod
     def verify_password(cls, plain_password, hashed_password):

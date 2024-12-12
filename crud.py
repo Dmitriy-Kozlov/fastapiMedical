@@ -95,6 +95,10 @@ class PatientCRUD(BaseCRUD):
     model = models.Patient
 
 
+class AdminCRUD(BaseCRUD):
+    model = models.Admin
+
+
 class DoctorCRUD(BaseCRUD):
     model = models.Doctor
 
@@ -115,13 +119,22 @@ class DoctorCRUD(BaseCRUD):
                     start_time = sch.start_time.strftime("%H:%M")
                     end_time = sch.end_time.strftime("%H:%M")
                     schedule[DAYS_OF_WEEK[sch.day_of_week]] = f"{start_time} - {end_time}"
+                # result.append({
+                #     "id": doctor.id,
+                #     "name": f"{doctor.last_name} {doctor.first_name}",
+                #     "specialty": doctor.specialization,
+                #     "schedule": schedule,
+                # })
                 result.append({
                     "id": doctor.id,
-                    "name": f"{doctor.last_name} {doctor.first_name}",
-                    "specialty": doctor.specialization,
+                    "last_name": doctor.last_name,
+                    "first_name": doctor.first_name,
+                    "specialization": doctor.specialization,
+                    "email": doctor.email,
+                    "phone_number": doctor.phone_number,
                     "schedule": schedule,
                 })
-
+            print(result)
             return result
 
 
@@ -259,6 +272,15 @@ class UserCRUD(BaseCRUD):
                     specialization=user.specialization,
                 )
                 db_user.doctor_id = doctor.id
+
+            elif user.role == "admin":
+                admin = await AdminCRUD.add(
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    email=user.email,
+                    phone_number=user.phone_number,
+                )
+                db_user.admin_id = admin.id
 
             try:
                 session.add(db_user)

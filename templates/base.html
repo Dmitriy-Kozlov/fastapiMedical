@@ -1,0 +1,29 @@
+<html><head><base href="." />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}{% endblock %}</title>
+<link rel="stylesheet" href="/static/css/base.css">
+
+    {% block style %}{% endblock %}
+
+</head>
+<body>
+    <header class="header">
+        <svg class="logo" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#2b87d1" stroke-width="5"/>
+            <path d="M30 50 h40 M50 30 v40" stroke="#2b87d1" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <div class="header-buttons">
+            <button class="header-btn" onclick="handleSchedule()">Расписание</button>
+            <button class="header-btn" onclick="handleLk()">Личный кабинет</button>
+            <button class="header-btn logout-btn" onclick="handleLogout()">Выйти</button>
+        </div>
+    </header>
+
+    <div class="profile-container">
+        {% block content %}{% endblock %}
+    </div>
+
+<script src="/static/js/base.js"></script>
+ {% block script %}{% endblock %}
+</body></html>

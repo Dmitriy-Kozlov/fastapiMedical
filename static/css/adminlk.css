@@ -1,0 +1,267 @@
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+}
+
+/*.header {*/
+/*    background: white;*/
+/*    padding: 1rem 2rem;*/
+/*    box-shadow: 0 2px 10px rgba(0,0,0,0.1);*/
+/*    display: flex;*/
+/*    justify-content: space-between;*/
+/*    align-items: center;*/
+/*}*/
+
+.logo {
+    width: 50px;
+    height: 50px;
+}
+
+.profile-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.admin-tabs {
+    display: flex;
+    margin-bottom: 1.5rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: 16px;
+  color: #666;
+}
+
+.tab.active {
+  color: #3498db;
+  border-bottom: 2px solid #3498db;
+  margin-bottom: -2px;
+}
+
+.admin-content {
+    display: none;
+}
+
+.admin-content.active {
+    display: block;
+}
+
+.search-container {
+    margin-bottom: 1rem;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.role-select {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.role-select label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-card {
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.save-btn {
+    padding: 0.5rem 1rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.save-btn:hover {
+    background: #3d8b40;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border-radius: 10px;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.edit-btn {
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.edit-btn:hover {
+    background: var(--primary-dark);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+/*.logout-btn {*/
+/*    padding: 0.5rem 1rem;*/
+/*    background: var(--primary);*/
+/*    color: white;*/
+/*    border: none;*/
+/*    border-radius: 5px;*/
+/*    cursor: pointer;*/
+/*    transition: background-color 0.3s;*/
+/*}*/
+
+/*.logout-btn:hover {*/
+/*    background: var(--primary-dark);*/
+/*}*/
+
+
+.schedule-display {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+/*.schedule-row {*/
+/*    display: flex;*/
+/*    gap: 1rem;*/
+/*    margin: 0.3rem 0;*/
+/*}*/
+.schedule-row {
+    display: flex;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+.day {
+    font-weight: bold;
+    min-width: 120px;
+    text-align: left; /* Выравнивание текста слева */
+    padding-right: 10px; /* Отступ справа для красоты */
+}
+
+.schedule-btn {
+    background: var(--accent);
+}
+
+.schedule-btn:hover {
+    background: #3d8b40;
+}
+
+/* Add styles for schedule modal */
+.schedule-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.schedule-form-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    gap: 1rem;
+}
+
+.time-inputs {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.time-inputs input {
+    padding: 0.5rem;
+    width: 120px;
+    text-align: right; /* Выравнивание текста справа */
+}

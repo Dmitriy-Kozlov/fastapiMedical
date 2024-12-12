@@ -2,7 +2,7 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-from models import Patient, Doctor, Appointment, Schedule, User
+from models import Patient, Doctor, Appointment, Schedule, User, Admin
 from database import Base
 from alembic import context
 

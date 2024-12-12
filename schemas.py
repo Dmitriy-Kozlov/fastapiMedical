@@ -68,14 +68,19 @@ class DoctorFilter(BaseModel):
     specialization: Optional[str] = None
 
 
-class ScheduleBase(BaseModel):
+class ScheduleCreate(BaseModel):
     doctor_id: int
     day_of_week: int = Field(title="Day of week", ge=0, le=6)
     start_time: time
     end_time: time
 
 
+class ScheduleBase(ScheduleCreate):
+    id: int
+
+
 class ScheduleFilter(BaseModel):
+    id: Optional[int] = None
     doctor_id: Optional[int] = None
     day_of_week: Optional[int] = None
     start_time: Optional[time] = None
