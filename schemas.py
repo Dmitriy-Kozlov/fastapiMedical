@@ -129,6 +129,7 @@ class UserCreate(UserBase):
     last_name: Optional[str] = None
     phone_number: Optional[str] = None
     specialization: Optional[str] = None
+    birth_date: Optional[date] = None
 
 
 class UserResponse(UserBase):

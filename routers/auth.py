@@ -1,6 +1,5 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 import schemas
@@ -9,7 +8,7 @@ from auth import get_current_user_with_role
 from crud import UserCRUD
 from typing import Union
 
-SECRET_KEY = "your_secret_key"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

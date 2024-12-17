@@ -4,8 +4,9 @@ from jose import JWTError, jwt
 from crud import UserCRUD, DoctorCRUD, PatientCRUD
 from typing import Union
 import schemas
+import os
 
-SECRET_KEY = "your_secret_key"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 ALGORITHM = "HS256"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")

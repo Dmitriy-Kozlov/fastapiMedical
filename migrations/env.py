@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -6,11 +7,13 @@ from models import Patient, Doctor, Appointment, Schedule, User, Admin
 from database import Base
 from alembic import context
 
-DB_HOST = "localhost"
-DB_PASS = "admin"
-DB_PORT = "5432"
-DB_USER = "postgres"
-DB_NAME = "postgres"
+
+DB_HOST = os.environ.get("DB_HOST")
+DB_PASS = os.environ.get("DB_PASS")
+DB_PORT = os.environ.get("DB_PORT")
+DB_USER = os.environ.get("DB_USER")
+DB_NAME = os.environ.get("DB_NAME")
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

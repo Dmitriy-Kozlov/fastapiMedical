@@ -1,23 +1,14 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, Depends
 from auth import get_current_user, is_proper_role
-from crud import DoctorCRUD, AppointmentCRUD
+from crud import DoctorCRUD, AppointmentCRUD, UserCRUD
 import schemas
 from datetime import date
-
-
 
 
 router = APIRouter(
     prefix="/api/doctors",
     tags=["doctors"],
-    # dependencies=[Depends(is_doctor)]
 )
-
-#
-# @router.post("/", response_model=schemas.Doctor)
-# async def create_doctor(doctor: schemas.DoctorBase):
-#     doctor_db = await DoctorCRUD.add(**doctor.dict())
-#     return doctor_db
 
 
 @router.get("/all", response_model=list[schemas.Doctor])
@@ -49,8 +40,10 @@ async def read_doctor(user=Depends(get_current_user),
 
 
 @router.put("/doctor/edit", response_model=schemas.Doctor | None)
-async def update_patient_by_filter(filters: schemas.DoctorFilter, patient=Depends(get_current_user)):
+async def update_patient_by_filter(filters: schemas.DoctorFilter, doctor=Depends(get_current_user)):
     doctor_bd = await DoctorCRUD.edit(**filters.dict())
+    user_bd = await UserCRUD.find_by_filter(patient_id=doctor_bd.id)
+    new_user = await UserCRUD.edit(id=user_bd[0].id, email=doctor_bd.email)
     return doctor_bd
 
 
@@ -69,3 +62,9 @@ async def read_doctor_by_id(doctor_id: int,
     if db_doctor is None:
         raise HTTPException(status_code=404, detail="doctor not found")
     return db_doctor
+
+
+@router.delete("/{doctor_id}/delete")
+async def delete_doctor(doctor_id: int, user=Depends(is_proper_role([schemas.UserRole.ADMIN]))):
+    message = await DoctorCRUD.delete(id=doctor_id)
+    return message

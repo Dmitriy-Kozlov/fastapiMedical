@@ -1,6 +1,3 @@
-// const authToken = localStorage.getItem('authToken')
-
-
 function openEditModal() {
     const modal = document.getElementById('editModal');
     // Populate form with current data
@@ -22,7 +19,6 @@ async function handleSubmit(event) {
     const formData = new FormData(event.target);
     let updatedData = Object.fromEntries(formData.entries());
     updatedData.id = patientData.id
-    console.log(updatedData)
 
     try {
         const response = await fetch('/api/patients/patient/edit', {
@@ -107,15 +103,11 @@ function renderPatientInfo(patient) {
     `;
     document.getElementById('patientInfo').innerHTML = patientInfoHtml;
 }
-                        // ${new Date(appointment.appointment_date).getHours()}:${new Date(appointment.appointment_date).getMinutes().toString().padStart(2, '0')}
-
 function createAppointmentCard(appointment) {
     const appointmentDate = new Date(appointment.appointment_date);
 
 // Преобразование времени с учетом временной зоны
 const localDateString = appointmentDate.toLocaleString('ru-RU', {
-    // timeZone: 'Europe/Moscow',
-    // timeZone: 'UTC',
     hour: '2-digit',
     minute: '2-digit',
     hour12: false, // Для 24-часового формата
@@ -202,6 +194,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         await switchTab('upcoming', patientData);
     } catch (error) {
         document.getElementById('patientInfo').innerHTML = '<div class="error-message">Ошибка при загрузке данных. Пожалуйста, попробуйте позже.</div>';
-        console.log(error)
     }
 });

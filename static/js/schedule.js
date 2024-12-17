@@ -1,17 +1,8 @@
-
-// const authToken = localStorage.getItem('authToken')
 let doctorId = null
 
 function createDoctorCard(doctor) {
   const card = document.createElement('div');
   card.className = 'doctor-card';
-  // const scheduleHtml = Object.entries(doctor.schedule)
-  //   .map(([day, hours]) => `
-  //     <tr>
-  //       <td>${day}</td>
-  //       <td>${hours}</td>
-  //     </tr>
-  //   `).join('');
   const dayOrder = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'];
 
 const scheduleHtml = dayOrder.map(day => `
@@ -58,12 +49,8 @@ function openAppointmentModal(id, doctorName) {
   const modal = document.getElementById('appointmentModal');
   document.getElementById('appointmentTime').value = ''
   document.getElementById('appointmentDate').value = ''
-  console.log(id)
   doctorId = id
   const doctorNameInput = document.getElementById('doctorName');
-  // document.getElementById('appointmentDate').addEventListener('change', (e) => {
-  //     loadAvailableSlots(doctorId, e.target.value);
-  //   });
   const successMessage = document.getElementById('successMessage');
 
   doctorNameInput.value = doctorName;
@@ -81,9 +68,7 @@ document.getElementById('appointmentModal').addEventListener('click', (e) => {
 
 document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log(document.getElementById('appointmentTime').value)
     let patient_id = localStorage.getItem('patientId') // Предполагается, что `patientId` сохранен в localStorage
-    console.log(patient_id)
   const doctorName = document.getElementById('doctorName').value;
     const doctor = doctors.find(d => `${d.last_name} ${d.first_name}` === doctorName);
     if (!doctor) {
@@ -114,7 +99,6 @@ if (!patient_id || patient_id === "null") {
             },
             body: JSON.stringify(formData)
         });
-        console.log(formData)
         if (response.status === 401 || response.status === 403) {
         window.location.href = '/pages/login';
         }
@@ -150,7 +134,6 @@ async function loadAvailableSlots(doctorId, selectedDate) {
 
     // Get doctor's working hours
     const doctor = doctors.find(d => d.id === doctorId);
-    console.log(doctorId)
     if (!doctor || !doctor.schedule) return;
 
     const dayNames = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
@@ -198,9 +181,6 @@ async function loadAvailableSlots(doctorId, selectedDate) {
 // Attach the function to the date input change event
 document.getElementById('appointmentDate').addEventListener('change', (e) => {
     const selectedDate = e.target.value;
-    // const doctorId = doctors.find(d => d.name === document.getElementById('doctorName').value)?.id;
-    // const doctorId = event.target.dataset.doctorId;
-    console.log(doctorId)
     if (doctorId && selectedDate) {
         loadAvailableSlots(doctorId, selectedDate);
     }
@@ -228,11 +208,6 @@ async function fetchDoctorsData() {
         throw error;
     }
 }
-
-
-// Load doctors when page loads
-// document.addEventListener('DOMContentLoaded', loadDoctors);
-
 
 let doctors = null;
 // Initialize page

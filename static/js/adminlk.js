@@ -1,5 +1,3 @@
-// const authToken = localStorage.getItem('authToken')
-
 function switchAdminTab(tabName) {
     const tabs = document.querySelectorAll('.tab');
     const contents = document.querySelectorAll('.admin-content');
@@ -20,8 +18,10 @@ function switchAdminTab(tabName) {
 
 function toggleSpecialization() {
     const specializationGroup = document.getElementById('specializationGroup');
+    const birthDateGroup = document.getElementById('birthDateGroup');
     const roleValue = document.querySelector('input[name="role"]:checked').value;
     specializationGroup.style.display = roleValue === 'doctor' ? 'block' : 'none';
+    birthDateGroup.style.display = roleValue === 'patient' ? 'block' : 'none';
 }
 
 async function handleRegister(event) {
@@ -57,7 +57,6 @@ async function handleRegister(event) {
 
 async function loadPatients() {
     try {
-        // const response = await fetch('/api/patients/all');
         const response = await fetch('/api/patients/all', {
             method: 'GET',
             headers: {
@@ -74,7 +73,6 @@ async function loadPatients() {
 
 async function loadDoctors() {
     try {
-        // const response = await fetch('/api/doctors/all', {
         const response = await fetch('/api/doctors/all_with_schedule', {
             method: 'GET',
             headers: {
@@ -83,7 +81,6 @@ async function loadDoctors() {
             },
         });
         const doctors = await response.json();
-        console.log(doctors)
         displayDoctors(doctors);
     } catch (error) {
         console.error('Error loading doctors:', error);
@@ -100,6 +97,7 @@ function displayPatients(patients) {
             </div>
             <div class="user-actions">
                 <button onclick="editPatient(${patient.id})" class="edit-btn">Редактировать</button>
+                <button onclick="deletePatient(${patient.id})" class="delete-btn">Удалить</button>
             </div>
         </div>
     `).join('');
@@ -131,6 +129,7 @@ function displayDoctors(doctors) {
             <div class="user-actions">
                 <button onclick="editDoctor(${doctor.id})" class="edit-btn">Редактировать</button>
                 <button onclick="editSchedule(${doctor.id})" class="edit-btn schedule-btn">Расписание</button>
+                <button onclick="deleteDoctor(${doctor.id})" class="delete-btn">Удалить</button>
             </div>
         </div>
     `).join('');
@@ -159,7 +158,6 @@ function filterDoctors() {
 document.getElementById('app_date').addEventListener('change', (e) => {
     const selectedDate = e.target.value;
     const doctorId = document.getElementById('app_doctor').value
-    console.log(doctorId)
     if (doctorId && selectedDate) {
         loadAvailableSlots(doctorId, selectedDate);
     }
@@ -173,8 +171,6 @@ async function loadAvailableSlots(doctorId, selectedDate) {
 
     // Get doctor's working hours
     const doctor = doctors.find(d => d.id === Number(doctorId));
-    console.log(doctors)
-    console.log(doctor)
     if (!doctor || !doctor.schedule) return;
 
     const dayNames = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
@@ -205,7 +201,6 @@ async function loadAvailableSlots(doctorId, selectedDate) {
 
     const occupiedSlots = await response.json();
     const occupiedTimes = occupiedSlots.map(a => new Date(a.appointment_date).toTimeString().slice(0, 5));
-    console.log(occupiedSlots, occupiedTimes)
     // Generate available time slots
     for (let hour = startHour; hour < endHour; hour++) {
         ['00', '30'].forEach(minutes => {
@@ -239,7 +234,6 @@ async function handleAppointmentCreate(event) {
 
     // Удаляем поля date, так как оно больше не нужно
     delete data.date;
-    console.log(data);
 
     try {
         const response = await fetch('/api/appointments/', {
@@ -273,7 +267,6 @@ async function handleAppointmentCreate(event) {
 
 async function editPatient(id) {
     try {
-        // const response = await fetch(`/api/patients/${id}`);
         const response = await fetch(`/api/patients/${id}`, {
             method: 'GET',
             headers: {
@@ -302,7 +295,6 @@ async function editPatient(id) {
 
 async function editDoctor(id) {
     try {
-        // const response = await fetch(`/api/doctors/${id}`);
         const response = await fetch(`/api/doctors/${id}`, {
             method: 'GET',
             headers: {
@@ -380,7 +372,6 @@ async function handleEditSubmit(event) {
 
 async function loadPatientsForSelect() {
     try {
-        // const response = await fetch('/api/patients/all');
          const response = await fetch('/api/patients/all', {
             method: 'GET',
             headers: {
@@ -400,7 +391,6 @@ async function loadPatientsForSelect() {
 
 async function loadDoctorsForSelect() {
     try {
-        // const response = await fetch('/api/doctors/all');
         const response = await fetch('/api/doctors/all', {
             method: 'GET',
             headers: {
@@ -428,7 +418,6 @@ function editSchedule(doctorId) {
             },
             body: JSON.stringify({"doctor_id": doctorId})
         })
-    // fetch(`/api/doctors/${doctorId}`)
     .then(response => response.json())
     .then(schedule => {
     document.getElementById('schedule_doctor_id').value = doctorId;
@@ -445,8 +434,6 @@ function editSchedule(doctorId) {
             end: entry.end_time.slice(0, 5)
         };
     });
-
-    console.log('Преобразованное расписание:', formattedSchedule);
 
     // Заполняем форму данными
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
@@ -482,7 +469,6 @@ function handleScheduleSubmit(event) {
     const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
     const schedule = [];
     const scheduleNew = [];
-    console.log(formData)
     dayNames.forEach((day, index) => {
         const id = formData.get(`${day}_id`);
         const start = formData.get(`${day}_start`);
@@ -506,8 +492,6 @@ function handleScheduleSubmit(event) {
             });
         }
     });
-    console.log(schedule)
-    console.log(scheduleNew)
 
 
     fetch(`/api/schedules/schedule/edit`, {
@@ -554,14 +538,56 @@ function handleScheduleSubmit(event) {
 }
 
 
+
+async function deletePatient(id) {
+    if (confirm('Вы уверены, что хотите удалить этого пациента?')) {
+        try {
+            const response = await fetch(`/api/patients/${id}/delete`, {
+                method: 'DELETE',
+                headers: {
+                'Authorization': `Bearer ${authToken}`
+            },
+            });
+
+            if (response.ok) {
+                alert('Пациент успешно удален');
+                loadPatients(); // Refresh the list
+            } else {
+                throw new Error('Failed to delete patient');
+            }
+        } catch (error) {
+            console.error('Error deleting patient:', error);
+            alert('Ошибка при удалении пациента');
+        }
+    }
+}
+
+async function deleteDoctor(id) {
+    if (confirm('Вы уверены, что хотите удалить этого доктора?')) {
+        try {
+            const response = await fetch(`/api/doctors/${id}/delete`, {
+                method: 'DELETE',
+                headers: {
+                'Authorization': `Bearer ${authToken}`
+            },
+            });
+
+            if (response.ok) {
+                alert('Доктор успешно удален');
+                loadDoctors(); // Refresh the list
+            } else {
+                throw new Error('Failed to delete doctor');
+            }
+        } catch (error) {
+            console.error('Error deleting doctor:', error);
+            alert('Ошибка при удалении доктора');
+        }
+    }
+}
+
+
 let doctors = null;
 
-// function handleLogout() {
-//     if (confirm('Вы уверены, что хотите выйти?')) {
-//         localStorage.removeItem('authToken')
-//         window.location.href = '/pages/login';
-//     }
-// }
 
 async function fetchDoctorsData() {
     try {

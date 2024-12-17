@@ -1,0 +1,47 @@
+version: "3"
+services:
+  fastapi:
+    build: .
+    environment:
+      - DB_HOST=db
+      - DB_PASS=admin
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_NAME=postgres
+      - SECRET_KEY=RPkIOE1DjjA2nBKqZkPstBf9S0ktFzEG
+#    ports:
+#      - 80:8000
+    command:  sh -c "sleep 10 && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      - db
+    networks:
+      - webnet
+
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - webnet
+
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
+      - './static:/app/static'
+    depends_on:
+      - fastapi
+    networks:
+      - webnet
+
+networks:
+  webnet:
+
+volumes:
+  pgdata:
+

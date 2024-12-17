@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException, Depends
 import schemas
-from auth import is_proper_role, get_current_user
+from auth import is_proper_role
 from crud import ScheduleCRUD
 
 router = APIRouter(
@@ -26,12 +26,6 @@ async def get_all_schedules(user=Depends(is_proper_role([schemas.UserRole.ADMIN,
     return schedules
 
 
-# @router.put("/schedule/edit", response_model=schemas.ScheduleBase | None)
-# async def update_schedule_by_filter(filters: schemas.ScheduleFilter, user=Depends(get_current_user)):
-#     schedule_bd = await ScheduleCRUD.edit(**filters.dict())
-#     return schedule_bd
-
-
 @router.put("/schedule/edit", response_model=List[schemas.ScheduleBase])
 async def update_schedule(schedules: List[schemas.ScheduleBase]):
     updated_schedules = []
@@ -49,7 +43,6 @@ async def get_schedules_by_filter(filters: schemas.ScheduleFilter,
 
 
 @router.get("/{schedule_id}", response_model=schemas.ScheduleBase)
-# async def read_schedule(schedule_id: int, user=Depends(is_proper_role([schemas.UserRole.ADMIN, schemas.UserRole.DOCTOR]))):
 async def read_schedule(schedule_id: int):
     db_schedule = await ScheduleCRUD.find_one_or_none_by_id(id=schedule_id)
     if db_schedule is None:

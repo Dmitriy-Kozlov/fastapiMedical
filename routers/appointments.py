@@ -1,10 +1,7 @@
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException, Depends
 import schemas
 from auth import get_current_user
 from crud import AppointmentCRUD
-from datetime import datetime, date
 from auth import is_proper_role
 
 

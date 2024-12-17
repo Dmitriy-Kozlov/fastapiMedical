@@ -13,9 +13,6 @@ function handleSchedule() {
         window.location.href = '/pages/schedule';
 }
 function handleLk() {
-    console.log(patientIdToken)
-    console.log(doctorIdToken)
-    console.log(adminIdToken)
 
     if (patientIdToken && patientIdToken !== "null") {
         window.location.href = '/pages/lk';

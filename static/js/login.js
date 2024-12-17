@@ -44,10 +44,18 @@ function handleSubmit(event) {
                 "password": password.value
             })
         })
-        .then(response => response.json())
+        .then(response => {
+                if (response.status === 401) {
+                    return response.json().then(error => {
+                        alert(error.detail || 'Ошибка авторизации');
+                        console.error('Login failed:', error.detail);
+                        throw new Error(error.detail || 'Ошибка авторизации');
+                    });
+                }
+                return response.json();
+            })
         .then(data => {
             if (data.access_token) {
-                console.log(data)
                 localStorage.setItem('authToken', data.access_token);
                 localStorage.setItem('patientId', data.patient_id);
                 localStorage.setItem('doctorId', data.doctor_id);
@@ -63,7 +71,7 @@ function handleSubmit(event) {
                     window.location.href = '/pages/adminlk';
                 }
             } else {
-        console.error('Login failed:', data.message);
+        console.error('Login failed:', data.detail);
     }
         })
         .catch(error => {

@@ -20,7 +20,7 @@ class Patient(Base):
     phone_number = Column(String, nullable=False)
     birth_date = Column(Date, nullable=True)
     appointments = relationship("Appointment", back_populates="patient")
-    user = relationship("User", back_populates="patient", uselist=False)
+    user = relationship("User", back_populates="patient", cascade="all, delete-orphan", uselist=False)
 
 
 class Doctor(Base):
@@ -31,9 +31,9 @@ class Doctor(Base):
     specialization = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     phone_number = Column(String, nullable=False)
-    schedules = relationship("Schedule", back_populates="doctor")
+    schedules = relationship("Schedule", cascade="all, delete-orphan", back_populates="doctor")
     appointments = relationship("Appointment", back_populates="doctor")
-    user = relationship("User", back_populates="doctor", uselist=False)
+    user = relationship("User", back_populates="doctor", cascade="all, delete-orphan", uselist=False)
 
 
 class Admin(Base):
@@ -43,13 +43,13 @@ class Admin(Base):
     last_name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     phone_number = Column(String, nullable=False)
-    user = relationship("User", back_populates="admin", uselist=False)
+    user = relationship("User", back_populates="admin", cascade="all, delete-orphan", uselist=False)
 
 
 class Schedule(Base):
     __tablename__ = "schedules"
     id = Column(Integer, primary_key=True, index=True)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("doctors.id", ondelete="CASCADE"), nullable=False)
     day_of_week = Column(Integer, nullable=False)  # 0: Monday, 6: Sunday
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
@@ -76,9 +76,9 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     role = Column(String, nullable=False)  # "doctor" или "patient"
-    patient_id = Column(Integer, ForeignKey("patients.id"), nullable=True)
-    doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=True)
-    admin_id = Column(Integer, ForeignKey("admins.id"), nullable=True)
+    patient_id = Column(Integer, ForeignKey("patients.id", ondelete="CASCADE"), nullable=True)
+    doctor_id = Column(Integer, ForeignKey("doctors.id", ondelete="CASCADE"), nullable=True)
+    admin_id = Column(Integer, ForeignKey("admins.id", ondelete="CASCADE"), nullable=True)
 
     patient = relationship("Patient", back_populates="user")
     doctor = relationship("Doctor", back_populates="user")

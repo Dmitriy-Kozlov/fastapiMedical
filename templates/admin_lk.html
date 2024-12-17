@@ -24,12 +24,12 @@
                 <h2>Регистрация пользователя</h2>
                 <form id="registerForm" onsubmit="handleRegister(event)">
                     <div class="form-group">
-                        <label for="reg_firstName">Имя</label>
-                        <input type="text" id="reg_firstName" name="first_name" required>
-                    </div>
-                    <div class="form-group">
                         <label for="reg_lastName">Фамилия</label>
                         <input type="text" id="reg_lastName" name="last_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg_firstName">Имя Отчество</label>
+                        <input type="text" id="reg_firstName" name="first_name" required>
                     </div>
                     <div class="form-group">
                         <label for="reg_email">Email</label>
@@ -43,6 +43,10 @@
                         <label for="reg_phone">Телефон</label>
                         <input type="tel" id="reg_phone" name="phone_number" required>
                     </div>
+                    <div class="form-group" id="birthDateGroup" style="display: none;">
+                        <label for="reg_date">Дата рождения</label>
+                        <input type="date" id="reg_date" name="birth_date">
+                    </div>
                     <div class="form-group" id="specializationGroup" style="display: none;">
                         <label for="reg_specialization">Специализация</label>
                         <input type="text" id="reg_specialization" name="specialization">
@@ -51,7 +55,7 @@
                         <label>Роль</label>
                         <div class="role-select">
                             <label>
-                                <input type="radio" name="role" value="patient" checked onchange="toggleSpecialization()">
+                                <input type="radio" name="role" value="patient" onchange="toggleSpecialization()">
                                 Пациент
                             </label>
                             <label>

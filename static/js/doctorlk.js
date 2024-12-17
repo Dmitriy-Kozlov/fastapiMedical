@@ -1,4 +1,3 @@
-// const authToken = localStorage.getItem('authToken')
 let searchTimeout;
 
 
@@ -52,9 +51,7 @@ function searchForPatient(patientName) {
 }
 
 async function toggleAppointmentStatus(appointmentId) {
-  console.log(appointmentId)
   const appointment = appointments.find(a => a.id === appointmentId);
-  console.log(appointment)
   if (appointment) {
     appointment.status = appointment.status === 'completed' ? 'scheduled' : 'completed';
     try {
@@ -98,7 +95,6 @@ async function loadAppointments() {
 
         if (!response.ok) throw new Error('Failed to fetch appointments');
         appointments = await response.json();
-        console.log(appointments)
         if (appointments) {
         appointments.sort((a, b) => new Date(a.appointment_date) - new Date(b.appointment_date));
 
@@ -135,7 +131,6 @@ async function saveNotes(appointmentId) {
     } catch (error) {
         console.error('Error fetching appointments:', error);
     }
-  console.log(`Saving notes for appointment ${appointmentId}:`, notes);
 
   // Show success message
   alert('Заметки сохранены');

@@ -1,9 +1,9 @@
 # app/crud.py
 from fastapi import HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
-from datetime import datetime, timezone, timedelta, date
+from datetime import date
 from database import async_session_maker
 import models
 import schemas
@@ -90,6 +90,15 @@ class BaseCRUD:
                     raise e
                 return plain_result
 
+    @classmethod
+    async def delete(cls, id: int):
+        async with async_session_maker() as session:
+            async with session.begin():
+                query = delete(cls.model).filter(cls.model.id == id)
+                await session.execute(query)
+                await session.commit()
+                return {"message": "obj deleted"}
+
 
 class PatientCRUD(BaseCRUD):
     model = models.Patient
@@ -108,7 +117,6 @@ class DoctorCRUD(BaseCRUD):
             query = await session.execute(
                 select(cls.model).options(
                     joinedload(cls.model.schedules)
-                    # cls.model.schedules
                 )
             )
             doctors = query.unique().scalars().all()
@@ -119,12 +127,6 @@ class DoctorCRUD(BaseCRUD):
                     start_time = sch.start_time.strftime("%H:%M")
                     end_time = sch.end_time.strftime("%H:%M")
                     schedule[DAYS_OF_WEEK[sch.day_of_week]] = f"{start_time} - {end_time}"
-                # result.append({
-                #     "id": doctor.id,
-                #     "name": f"{doctor.last_name} {doctor.first_name}",
-                #     "specialty": doctor.specialization,
-                #     "schedule": schedule,
-                # })
                 result.append({
                     "id": doctor.id,
                     "last_name": doctor.last_name,
@@ -134,7 +136,6 @@ class DoctorCRUD(BaseCRUD):
                     "phone_number": doctor.phone_number,
                     "schedule": schedule,
                 })
-            print(result)
             return result
 
 
@@ -260,6 +261,7 @@ class UserCRUD(BaseCRUD):
                     last_name=user.last_name,
                     email=user.email,
                     phone_number=user.phone_number,
+                    birth_date=user.birth_date
                 )
                 db_user.patient_id = patient.id
 
